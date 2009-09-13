@@ -114,6 +114,10 @@ namespace sdl {
         throw flusspferd::exception("Color constructor expects r,g,b or color");
       }
     }
+
+    static Color &create(SDL_Color const &color) {
+      return flusspferd::create_native_object<Color>(object(), color);
+    }
   };
 
   FLUSSPFERD_CLASS_DESCRIPTION
@@ -375,9 +379,134 @@ namespace sdl {
     return SDL_SetColors(surface.surface, &color.color, firstcolor, ncolors);
   }
 
+  Surface &create_RGB_surface(int flags, int width, int height, int bpp, int rmask, int gmask, int bmask, int amask) {
+    SDL_Surface *surface = SDL_CreateRGBSurface(flags, width, height, bpp, rmask, gmask, bmask, amask);
+    if(!surface) {
+      std::string const what = std::string("SDL_CreateRGBSurface: ") + SDL_GetError();
+      throw flusspferd::exception(what.c_str());
+    }
+    return Surface::create(surface);
+  }
+
+  int set_alpha(Surface &surface, int flags, int alpha) {
+    return SDL_SetAlpha(surface.surface, flags, alpha);
+  }
+
+  int set_color_key(Surface &surface, int flag, int key) {
+    return SDL_SetColorKey(surface.surface, flag, key);
+  }
+
+  Surface &display_format(Surface &in) {
+    SDL_Surface *surface = SDL_DisplayFormat(in.surface);
+    if(!surface) {
+      std::string const what = std::string("SDL_DisplayFormat: ") + SDL_GetError();
+      throw flusspferd::exception(what.c_str());
+    }
+    return Surface::create(surface);
+  }
+
+  Surface &display_format_alpha(Surface &in) {
+    SDL_Surface *surface = SDL_DisplayFormatAlpha(in.surface);
+    if(!surface) {
+      std::string const what = std::string("SDL_DisplayFormatAlpha: ") + SDL_GetError();
+      throw flusspferd::exception(what.c_str());
+    }
+    return Surface::create(surface);
+  }
+
+  Surface &convert_surface(Surface &in, PixelFormat &fmt, int flags) {
+    SDL_Surface *surface = SDL_ConvertSurface(in.surface, fmt.format, flags);
+    if(!surface) {
+      std::string const what = std::string("SDL_ConvertSurface: ") + SDL_GetError();
+      throw flusspferd::exception(what.c_str());
+    }
+    return Surface::create(surface);
+  }
+
+  std::string video_driver_name() {
+    enum { MAXLEN = 1024 };
+    char buffer[MAXLEN];
+    return SDL_VideoDriverName(buffer, MAXLEN);
+  }
+
+  void error(int err) {
+    SDL_Error((SDL_errorcode)err);
+  }
+
+  object sdl_version() {
+    SDL_version v;
+    SDL_VERSION(&v);
+    object ver(flusspferd::create_object());
+    ver.set_property("major", v.major);
+    ver.set_property("minor", v.minor);
+    ver.set_property("patch", v.patch);
+    return ver;
+  }
+
+  object linked_version() {
+    SDL_version const *v = SDL_Linked_Version();
+    if(!v) {
+      std::string const what = std::string("SDL_Linked_Version: ") + SDL_GetError();
+      throw flusspferd::exception(what.c_str());
+    }
+    object ver(flusspferd::create_object());
+    ver.set_property("major", v->major);
+    ver.set_property("minor", v->minor);
+    ver.set_property("patch", v->patch);
+    return ver;
+  }
+
+  int map_RGB(PixelFormat &fmt, int r, int g, int b) {
+    return SDL_MapRGB(fmt.format, r, g, b);
+  }
+
+  int map_RGBA(PixelFormat &fmt, int r, int g, int b, int a) {
+    return SDL_MapRGBA(fmt.format, r, g, b, a);
+  }
+
+  Color &get_RGB(int pixel, PixelFormat &format) {
+    SDL_Color color;
+    SDL_GetRGB(pixel, format.format, &color.r, &color.g, &color.b);
+    return Color::create(color);
+  }
+
+  int save_BMP(Surface &surface, char const *file) {
+    return SDL_SaveBMP(surface.surface, file);
+  }
+
+  /* Missing:
+  General:
+    SDL_SetError - Sets SDL Error
+    SDL_LoadObject - Loads a shared object.
+    SDL_LoadFunction - Returns the address of a function in a loaded shared object.
+    SDL_UnloadObject - Unloads a shared object.
+    SDL_envvars - SDL environment variables
+
+  Video:
+    SDL_GetVideoInfo
+    SDL_ListModes
+    SDL_VideoModeOK
+    SDL_UpdateRects
+    SDL_SetPalette
+    SDL_GetGammaRamp
+    SDL_SetGammaRamp
+    SDL_GetRGBA
+    SDL_CreateRGBSurfaceFrom
+    SDL_SetClipRect
+    SDL_GetClipRect
+    SDL_FillRect
+    SDL_GL*
+    SDL_*YUV*
+
+    class for handling pixel data
+
+    everything else
+   */
+
   FLUSSPFERD_LOADER_SIMPLE(sdl) {
     local_root_scope scope;
 
+    // General
     sdl.define_property("INIT_TIMER", value(SDL_INIT_TIMER));
     sdl.define_property("INIT_AUDIO", value(SDL_INIT_AUDIO));
     sdl.define_property("INIT_VIDEO", value(SDL_INIT_VIDEO));
@@ -387,8 +516,23 @@ namespace sdl {
     sdl.define_property("INIT_NOPARACHUTE", value(SDL_INIT_NOPARACHUTE));
     sdl.define_property("INIT_EVENTTHREAD", value(SDL_INIT_EVENTTHREAD));
     create_native_function(sdl, "init", &::SDL_Init);
+    create_native_function(sdl, "initSubSystem", &::SDL_InitSubSystem);
     create_native_function(sdl, "quit", &sdl::quit);
+    create_native_function(sdl, "quitSubSystem", &::SDL_QuitSubSystem);
+    sdl.define_property("ENOMEM", value((int)SDL_ENOMEM));
+    sdl.define_property("EFREAD", value((int)SDL_EFREAD));
+    sdl.define_property("EFWRITE", value((int)SDL_EFWRITE));
+    sdl.define_property("EFSEEK", value((int)SDL_EFSEEK));
+    sdl.define_property("UNSUPPORTED", value((int)SDL_UNSUPPORTED));
+    sdl.define_property("LASTERROR", value((int)SDL_LASTERROR));
+    create_native_function(sdl, "error", &sdl::error);
     create_native_function(sdl, "getError", &::SDL_GetError);
+    create_native_function(sdl, "clearError", &::SDL_ClearError);
+    create_native_function(sdl, "wasInit", &::SDL_WasInit);
+    create_native_function(sdl, "version", &sdl::sdl_version);
+    create_native_function(sdl, "linkedVersion", &sdl::linked_version);
+
+    // Video
     sdl.define_property("SWSURFACE", value(SDL_SWSURFACE));
     sdl.define_property("HWSURFACE", value(SDL_HWSURFACE));
     sdl.define_property("ASYNCBLIT", value(SDL_ASYNCBLIT));
@@ -410,8 +554,22 @@ namespace sdl {
     create_native_function(sdl, "unlockSurface", &sdl::unlock_surface);
     create_native_function(sdl, "freeSurface", &sdl::free_surface);
     create_native_function(sdl, "loadBMP", &sdl::load_BMP);
+    create_native_function(sdl, "saveBMP", &sdl::save_BMP);
     boost::function< void(call_context &)> blit_surface_ = &sdl::blit_surface;
     create_native_function(sdl, "blitSurface", blit_surface_);
     create_native_function(sdl, "setColors", &sdl::set_colors);
+    //create_native_function(sdl, "createRGBSurface", &sdl::create_RGB_surface);
+    sdl.define_property("SRCALPHA", value(SDL_SRCALPHA));
+    sdl.define_property("RLEACCEL", value(SDL_RLEACCEL));
+    create_native_function(sdl, "setAlpha", &sdl::set_alpha);
+    sdl.define_property("SRCCOLORKEY", value(SDL_SRCCOLORKEY));
+    create_native_function(sdl, "setColorKey", &sdl::set_color_key);
+    create_native_function(sdl, "displayFormat", &sdl::display_format);
+    create_native_function(sdl, "displayFormatAlpha", &sdl::display_format_alpha);
+    create_native_function(sdl, "videoDriverName", &sdl::video_driver_name);
+    create_native_function(sdl, "setGamma", &::SDL_SetGamma);
+    create_native_function(sdl, "mapRGB", &sdl::map_RGB);
+    create_native_function(sdl, "mapRGBA", &sdl::map_RGBA);
+    create_native_function(sdl, "getRGB", &sdl::get_RGB);
   }
 }
