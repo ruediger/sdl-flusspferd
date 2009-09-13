@@ -69,6 +69,55 @@ namespace sdl {
 
   FLUSSPFERD_CLASS_DESCRIPTION
   (
+   Color,
+   (constructor_name, "Color")
+   (full_name, "sdl.Color")
+   (properties,
+    ("r", getter_setter, (get_r, set_r))
+    ("g", getter_setter, (get_g, set_g))
+    ("b", getter_setter, (get_b, set_b)))
+   )
+  {
+  public:
+    SDL_Color color;
+
+    int get_r() { return color.r; }
+    void set_r(int r) { color.r = r; }
+    int get_g() { return color.g; }
+    void set_g(int g) { color.g = g; }
+    int get_b() { return color.b; }
+    void set_b(int b) { color.b = b; }
+
+    Color(flusspferd::object const &self, SDL_Color const &color)
+      : base_type(self), color(color)
+    { }
+    Color(flusspferd::object const &self, flusspferd::call_context &x)
+      : base_type(self)
+    {
+      if(x.arg.size() == 3) {
+        if(!x.arg[0].is_int() || x.arg[1].is_int() || x.arg[2].is_int()) {
+          throw flusspferd::exception("Color constructor expected integers");
+        }
+        color.r = x.arg[0].get_int();
+        color.g = x.arg[1].get_int();
+        color.b = x.arg[2].get_int();
+      }
+      else if(x.arg.size() == 1) {
+        if(!x.arg[0].is_object() ||
+           !flusspferd::is_native<Color>(x.arg[0].get_object()))
+        {
+          throw flusspferd::exception("Color constructor expects r,g,b or color");
+        }
+        color = flusspferd::get_native<Color>(x.arg[0].get_object()).color;
+      }
+      else {
+        throw flusspferd::exception("Color constructor expects r,g,b or color");
+      }
+    }
+  };
+
+  FLUSSPFERD_CLASS_DESCRIPTION
+  (
    PixelFormat,
    (constructor_name, "PixelFormat")
    (constructible, false)
@@ -255,23 +304,23 @@ namespace sdl {
     return Surface::create(SDL_GetVideoSurface());
   }
 
-  int flip(Surface const &surface) {
+  int flip(Surface &surface) {
     return SDL_Flip(surface.surface);
   }
 
-  void update_rect(Surface const &screen, int x, int y, int w, int h) {
+  void update_rect(Surface &screen, int x, int y, int w, int h) {
     SDL_UpdateRect(screen.surface, x, y, w, h);
   }
 
-  int lock_surface(Surface const &surface) {
+  int lock_surface(Surface &surface) {
     return SDL_LockSurface(surface.surface);
   }
 
-  void unlock_surface(Surface const &surface) {
+  void unlock_surface(Surface &surface) {
     SDL_UnlockSurface(surface.surface);
   }
 
-  void free_surface(Surface const &surface) {
+  void free_surface(Surface &surface) {
     SDL_FreeSurface(surface.surface);
   }
 
@@ -322,6 +371,10 @@ namespace sdl {
     }
   }
 
+  int set_colors(Surface &surface, Color &color, int firstcolor, int ncolors) {
+    return SDL_SetColors(surface.surface, &color.color, firstcolor, ncolors);
+  }
+
   FLUSSPFERD_LOADER_SIMPLE(sdl) {
     local_root_scope scope;
 
@@ -359,5 +412,6 @@ namespace sdl {
     create_native_function(sdl, "loadBMP", &sdl::load_BMP);
     boost::function< void(call_context &)> blit_surface_ = &sdl::blit_surface;
     create_native_function(sdl, "blitSurface", blit_surface_);
+    create_native_function(sdl, "setColors", &sdl::set_colors);
   }
 }
