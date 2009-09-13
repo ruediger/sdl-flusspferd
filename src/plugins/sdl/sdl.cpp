@@ -29,6 +29,7 @@ THE SOFTWARE.
 #include "flusspferd/security.hpp"
 #include "flusspferd/class_description.hpp"
 
+#include <stdexcept>
 #include <cassert>
 
 #include <SDL.h>
@@ -86,10 +87,22 @@ namespace sdl {
     Surface(flusspferd::object const &self, SDL_Surface *surface)
       : base_type(self), surface(surface)
     { }
+
+    static Surface &create(SDL_Surface *surface) {
+      return flusspferd::create_native_object<Surface>(object(), surface);
+    }
   };
 
   void quit() {
     SDL_Quit();
+  }
+
+  Surface &set_video_mode(int width, int height, int bpp, Uint32 flags) {
+    SDL_Surface *surface = SDL_SetVideoMode(width, height, bpp, flags);
+    if(!surface) {
+      throw std::runtime_error(std::string("SDL_SetVideoMode: ") + SDL_GetError());
+    }
+    return Surface::create(surface);
   }
 
   FLUSSPFERD_LOADER_SIMPLE(sdl) {
@@ -103,11 +116,21 @@ namespace sdl {
     sdl.define_property("INIT_EVERYTHING", value(SDL_INIT_EVERYTHING));
     sdl.define_property("INIT_NOPARACHUTE", value(SDL_INIT_NOPARACHUTE));
     sdl.define_property("INIT_EVENTTHREAD", value(SDL_INIT_EVENTTHREAD));
-
     create_native_function(sdl, "init", &::SDL_Init);
     create_native_function(sdl, "quit", &sdl::quit);
-    create_native_function(sdl, "get_error", &::SDL_GetError);
-
+    create_native_function(sdl, "getError", &::SDL_GetError);
+    sdl.define_property("SWSURFACE", value(SDL_SWSURFACE));
+    sdl.define_property("HWSURFACE", value(SDL_HWSURFACE));
+    sdl.define_property("ASYNCBLIT", value(SDL_ASYNCBLIT));
+    sdl.define_property("ANYFORMAT", value(SDL_ANYFORMAT));
+    sdl.define_property("HWPALETTE", value(SDL_HWPALETTE));
+    sdl.define_property("DOUBLEBUF", value(SDL_DOUBLEBUF));
+    sdl.define_property("FULLSCREEN", value(SDL_FULLSCREEN));
+    sdl.define_property("OPENGL", value(SDL_OPENGL));
+    sdl.define_property("OPENGLBLIT", value(SDL_OPENGLBLIT));
+    sdl.define_property("RESIZABLE", value(SDL_RESIZABLE));
+    sdl.define_property("NOFRAME", value(SDL_NOFRAME));
+    create_native_function(sdl, "setVideoMode", &sdl::set_video_mode);
     load_class<sdl::Surface>(sdl);
   }
 }
