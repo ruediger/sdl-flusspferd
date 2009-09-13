@@ -4,6 +4,9 @@ Flusspferd Change Log
 Release 0.8
 -----------
 
+2009-09-13:
+- Added SDL plugin
+
 2009-09-10:
 - Added bash_completion script for flusspferd
 
