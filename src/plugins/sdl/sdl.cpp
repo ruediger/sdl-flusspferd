@@ -31,6 +31,7 @@ THE SOFTWARE.
 
 #include <stdexcept>
 #include <cassert>
+#include <limits>
 
 #include <SDL.h>
 
@@ -225,6 +226,46 @@ namespace sdl {
     }
   };
 
+  class Surface;
+
+  FLUSSPFERD_CLASS_DESCRIPTION
+  (
+   PixelData,
+   (constructor_name, "PixelData")
+   (constructible, false)
+   (full_name, "sdl.PixelData")
+   (methods,
+    ("get", bind, get)
+    ("set", bind, set)
+    ("getpixel", bind, getpixel)
+    ("setpixel", bind, setpixel))
+   )
+  {
+    Uint8 *data;
+  public:
+    int get(int n) {
+      assert(data && n > 0);
+      return data[n];
+    }
+    void set(int n, int byte) {
+      assert(data && n > 0 && byte <= std::numeric_limits<Uint8>::max());
+      data[n] = byte;
+    }
+
+    int getpixel(Surface &surface, int x, int y);
+    void setpixel(Surface &surface, int x, int y, int color);
+
+    PixelData(flusspferd::object const &self, Uint8 *data)
+      : base_type(self), data(data)
+    {
+      assert(data);
+    }
+
+    static PixelData &create(void *data) {
+      return flusspferd::create_native_object<PixelData>(object(), reinterpret_cast<Uint8*>(data));
+    }
+  };
+
   FLUSSPFERD_CLASS_DESCRIPTION
   (
    Surface,
@@ -239,6 +280,7 @@ namespace sdl {
     ("height", getter, get_height)
     ("h", getter, get_height)
     ("pitch", getter, get_pitch)
+    ("pixels", getter, get_pixels)
     ("clip_rect", getter, get_clip_rect)
     ("refcount", getter_setter, (get_refcount, set_refcount)))
    )
@@ -266,7 +308,10 @@ namespace sdl {
       assert(surface);
       return surface->pitch;
     }
-    // TODO pixels
+    PixelData &get_pixels() {
+      assert(surface);
+      return PixelData::create(surface->pixels);
+    }
     object get_clip_rect() {
       assert(surface);
       return rect2object(surface->clip_rect);
@@ -290,6 +335,63 @@ namespace sdl {
       return flusspferd::create_native_object<Surface>(object(), surface);
     }
   };
+
+  int PixelData::getpixel(Surface &s, int x, int y) {
+    assert(s.surface);
+    SDL_Surface *surface = s.surface;
+    int const bpp = surface->format->BytesPerPixel;
+    Uint8 *p = data + y * surface->pitch + x * bpp;
+    switch (bpp) {
+    case 1:
+      return *p;
+      break;
+    case 2:
+      return *reinterpret_cast<Uint16*>(p);
+      break;
+    case 3:
+      if (SDL_BYTEORDER == SDL_BIG_ENDIAN)
+        return p[0] << 16 | p[1] << 8 | p[2];
+      else
+        return p[0] | p[1] << 8 | p[2] << 16;
+      break;
+    case 4:
+      return *reinterpret_cast<Uint32*>(p);
+      break;
+    default:
+      throw flusspferd::exception("getpixel");
+    }
+  }
+  void PixelData::setpixel(Surface &s, int x, int y, int color) {
+    assert(s.surface);
+    SDL_Surface *surface = s.surface;
+    int const bpp = surface->format->BytesPerPixel;
+    Uint8 *p = data + y * surface->pitch + x * bpp;
+    switch(bpp) {
+    case 1:
+      *p = color;
+      break;
+    case 2:
+      *reinterpret_cast<Uint16*>(p) = color;
+      break;
+    case 3:
+      if(SDL_BYTEORDER == SDL_BIG_ENDIAN) {
+        p[0] = (color >> 16) & 0xff;
+        p[1] = (color >> 8) & 0xff;
+        p[2] = color & 0xff;
+      }
+      else {
+        p[0] = color & 0xff;
+        p[1] = (color >> 8) & 0xff;
+        p[2] = (color >> 16) & 0xff;
+      }
+      break;
+    case 4:
+      *reinterpret_cast<Uint32*>(p) = color;
+      break;
+   default:
+     throw flusspferd::exception("setpixel");
+    }
+  }
 
   void quit() {
     SDL_Quit();
@@ -474,6 +576,21 @@ namespace sdl {
     return SDL_SaveBMP(surface.surface, file);
   }
 
+  void set_clip_rect(Surface &surface, object const &o) {
+    SDL_Rect rect = object2rect(o);
+    SDL_SetClipRect(surface.surface, &rect);
+  }
+  object get_clip_rect(Surface &surface) {
+    SDL_Rect rect;
+    SDL_GetClipRect(surface.surface, &rect);
+    return rect2object(rect);
+  }
+
+  int fill_rect(Surface &surface, object const &rect, int color) {
+    SDL_Rect r = object2rect(rect);
+    return SDL_FillRect(surface.surface, &r, color);
+  }
+
   /* Missing:
   General:
     SDL_SetError - Sets SDL Error
@@ -492,13 +609,8 @@ namespace sdl {
     SDL_SetGammaRamp
     SDL_GetRGBA
     SDL_CreateRGBSurfaceFrom
-    SDL_SetClipRect
-    SDL_GetClipRect
-    SDL_FillRect
     SDL_GL*
     SDL_*YUV*
-
-    class for handling pixel data
 
     everything else
    */
@@ -548,6 +660,9 @@ namespace sdl {
     create_native_function(sdl, "getVideoSurface", &sdl::get_video_surface);
     load_class<sdl::Surface>(sdl);
     load_class<sdl::PixelFormat>(sdl);
+    load_class<sdl::Color>(sdl);
+    load_class<sdl::PixelData>(sdl);
+    create_native_function(sdl, "videoModeOK", &::SDL_VideoModeOK);
     create_native_function(sdl, "flip", &sdl::flip);
     create_native_function(sdl, "updateRect", &sdl::update_rect);
     create_native_function(sdl, "lockSurface", &sdl::lock_surface);
@@ -571,5 +686,8 @@ namespace sdl {
     create_native_function(sdl, "mapRGB", &sdl::map_RGB);
     create_native_function(sdl, "mapRGBA", &sdl::map_RGBA);
     create_native_function(sdl, "getRGB", &sdl::get_RGB);
+    create_native_function(sdl, "setClipRect", &sdl::set_clip_rect);
+    create_native_function(sdl, "getClipRect", &sdl::get_clip_rect);
+    create_native_function(sdl, "fillRect", &sdl::fill_rect);
   }
 }
