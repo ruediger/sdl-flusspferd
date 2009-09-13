@@ -34,11 +34,6 @@ THE SOFTWARE.
 
 #include <SDL.h>
 
-// DEBUG(
-#include "flusspferd/value_io.hpp"
-#include <iostream>
-// DEBUG)
-
 using namespace flusspferd;
 
 namespace sdl {
@@ -291,7 +286,6 @@ namespace sdl {
 
   void blit_surface(flusspferd::call_context &x) {
     if(x.arg.size() == 2) {
-      std::cerr << "DEBUG: " << x.arg[0] << ' ' << x.arg[1] << std::endl;
       if(!x.arg[0].is_object() || !flusspferd::is_native<Surface>(x.arg[0].get_object())) {
         throw flusspferd::exception("blitSurface: expected Surface as first parameter");
       }
@@ -300,9 +294,7 @@ namespace sdl {
         throw flusspferd::exception("blitSurface: expected Surface as second parameter");
       }
       SDL_Surface *dest = flusspferd::get_native<Surface>(x.arg[1].get_object()).surface;
-      std::cerr << "blit\n";
       x.result = value(SDL_BlitSurface(src, 0x0, dest, 0x0));
-      std::cerr << "done\n";
       return;
     }
     else if(x.arg.size() == 4) {
