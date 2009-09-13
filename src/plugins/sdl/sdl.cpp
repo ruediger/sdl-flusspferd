@@ -591,6 +591,18 @@ namespace sdl {
     return SDL_FillRect(surface.surface, &r, color);
   }
 
+  int wm_toggle_fullscreen(Surface &surface) {
+    return SDL_WM_ToggleFullScreen(surface.surface);
+  }
+
+  void wm_set_icon(Surface &surface) {
+    SDL_WM_SetIcon(surface.surface, 0x0);
+  }
+
+  int wm_grab_input(int mode) {
+    return (int)SDL_WM_GrabInput((SDL_GrabMode)mode);
+  }
+
   /* Missing:
   General:
     SDL_SetError - Sets SDL Error
@@ -612,7 +624,11 @@ namespace sdl {
     SDL_GL*
     SDL_*YUV*
 
-    everything else
+  Window Management:
+    SDL_GetWMInfo - Gets window-manager specific information, if available
+    SDL_WM_GetCaption - Gets the window title and icon name.
+
+  and everything else
    */
 
   FLUSSPFERD_LOADER_SIMPLE(sdl) {
@@ -689,5 +705,15 @@ namespace sdl {
     create_native_function(sdl, "setClipRect", &sdl::set_clip_rect);
     create_native_function(sdl, "getClipRect", &sdl::get_clip_rect);
     create_native_function(sdl, "fillRect", &sdl::fill_rect);
+
+    // Window Management
+    create_native_function(sdl, "WMSetCaption", &::SDL_WM_SetCaption);
+    create_native_function(sdl, "WMToggleFullScreen", &sdl::wm_toggle_fullscreen);
+    create_native_function(sdl, "WMSetIcon", &sdl::wm_set_icon);
+    create_native_function(sdl, "WMIconifyWindow", &::SDL_WM_IconifyWindow);
+    sdl.define_property("GRAB_QUERY", value((int)SDL_GRAB_QUERY));
+    sdl.define_property("GRAB_OFF", value((int)SDL_GRAB_OFF));
+    sdl.define_property("GRAB_ON", value((int)SDL_GRAB_ON));
+    create_native_function(sdl, "WMGrabInput", &sdl::wm_grab_input);
   }
 }
