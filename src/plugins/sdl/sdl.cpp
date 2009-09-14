@@ -35,6 +35,8 @@ THE SOFTWARE.
 
 #include <SDL.h>
 
+#include "sdl-key.hpp"
+
 using namespace flusspferd;
 
 namespace sdl {
@@ -620,6 +622,7 @@ namespace sdl {
     SDL_GetGammaRamp
     SDL_SetGammaRamp
     SDL_GetRGBA
+    SDL_CreateRGBSurface
     SDL_CreateRGBSurfaceFrom
     SDL_GL*
     SDL_*YUV*
@@ -627,6 +630,31 @@ namespace sdl {
   Window Management:
     SDL_GetWMInfo - Gets window-manager specific information, if available
     SDL_WM_GetCaption - Gets the window title and icon name.
+
+  Events:
+    SDL_Event_Structures
+    SDLKey - Keysym definitions
+    SDLMod - Modifier definitions
+    SDL_PumpEvents - Pumps the event loop, gathering events from the input devices
+    SDL_PeepEvents - Checks the event queue for messages and optionally returns them
+    SDL_PollEvent - Polls for currently pending events
+    SDL_WaitEvent - Waits indefinitely for the next available event
+    SDL_PushEvent - Pushes an event onto the event queue
+    SDL_SetEventFilter - Sets up a filter to process all events
+    SDL_EventState - Allows you to set the state of processing certain events
+    SDL_GetKeyState - Gets a snapshot of the current keyboard state
+    SDL_GetModState - Gets the state of modifier keys
+    SDL_SetModState - Sets the state of modifier keys
+    SDL_GetKeyName - Gets the name of an SDL virtual keysym
+    SDL_EnableUNICODE - Enables UNICODE translation
+    SDL_EnableKeyRepeat - Sets keyboard repeat rate
+    SDL_GetMouseState - Retrieves the current state of the mouse
+    SDL_GetRelativeMouseState - Retrieves the current state of the mouse
+    SDL_GetAppState - Gets the state of the application
+    SDL_JoystickEventState - Enable/disable joystick event polling
+    SDL_StartTextInput - Start accepting Unicode text input events
+    SDL_StopTextInput - Stop accepting Unicode text input events
+    SDL_SetTextInputRect - Set the rectangle for input methods to display inputed Unicode text and candidate text 
 
   and everything else
    */
@@ -715,5 +743,9 @@ namespace sdl {
     sdl.define_property("GRAB_OFF", value((int)SDL_GRAB_OFF));
     sdl.define_property("GRAB_ON", value((int)SDL_GRAB_ON));
     create_native_function(sdl, "WMGrabInput", &sdl::wm_grab_input);
+
+    // Events
+    sdl.define_property("Key", key_object());
+    create_native_function(sdl, "enableUNICODE", &::SDL_EnableUNICODE);
   }
 }
