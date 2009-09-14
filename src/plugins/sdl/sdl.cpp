@@ -605,6 +605,18 @@ namespace sdl {
     return (int)SDL_WM_GrabInput((SDL_GrabMode)mode);
   }
 
+  char const *get_key_name(int key) {
+    return SDL_GetKeyName((SDLKey)key);
+  }
+
+  int get_app_state() {
+    return SDL_GetAppState();
+  }
+
+  int event_state(int type, int state) {
+    return event_state(type, state);
+  }
+
   /* Missing:
   General:
     SDL_SetError - Sets SDL Error
@@ -633,7 +645,6 @@ namespace sdl {
 
   Events:
     SDL_Event_Structures
-    SDLKey - Keysym definitions
     SDLMod - Modifier definitions
     SDL_PumpEvents - Pumps the event loop, gathering events from the input devices
     SDL_PeepEvents - Checks the event queue for messages and optionally returns them
@@ -641,19 +652,12 @@ namespace sdl {
     SDL_WaitEvent - Waits indefinitely for the next available event
     SDL_PushEvent - Pushes an event onto the event queue
     SDL_SetEventFilter - Sets up a filter to process all events
-    SDL_EventState - Allows you to set the state of processing certain events
     SDL_GetKeyState - Gets a snapshot of the current keyboard state
     SDL_GetModState - Gets the state of modifier keys
     SDL_SetModState - Sets the state of modifier keys
-    SDL_GetKeyName - Gets the name of an SDL virtual keysym
-    SDL_EnableUNICODE - Enables UNICODE translation
-    SDL_EnableKeyRepeat - Sets keyboard repeat rate
     SDL_GetMouseState - Retrieves the current state of the mouse
     SDL_GetRelativeMouseState - Retrieves the current state of the mouse
-    SDL_GetAppState - Gets the state of the application
     SDL_JoystickEventState - Enable/disable joystick event polling
-    SDL_StartTextInput - Start accepting Unicode text input events
-    SDL_StopTextInput - Stop accepting Unicode text input events
     SDL_SetTextInputRect - Set the rectangle for input methods to display inputed Unicode text and candidate text 
 
   and everything else
@@ -745,7 +749,21 @@ namespace sdl {
     create_native_function(sdl, "WMGrabInput", &sdl::wm_grab_input);
 
     // Events
-    sdl.define_property("Key", key_object());
+    sdl.define_property("key", key_object());
     create_native_function(sdl, "enableUNICODE", &::SDL_EnableUNICODE);
+    create_native_function(sdl, "enableKeyRepeat", &::SDL_EnableKeyRepeat);
+    create_native_function(sdl, "getKeyName", &sdl::get_key_name);
+    sdl.define_property("APPMOUSEFOCUS", value((int)SDL_APPMOUSEFOCUS));
+    sdl.define_property("APPINPUTFOCUS", value((int)SDL_APPINPUTFOCUS));
+    sdl.define_property("APPACTIVE", value((int)SDL_APPACTIVE));
+    create_native_function(sdl, "getAppState", &sdl::get_app_state);
+#if 0
+    create_native_function(sdl, "startTextInput", &::SDL_StartTextInput);
+    create_native_function(sdl, "stopTextInput", &::SDL_StopTextInput);
+#endif
+    sdl.define_property("IGNORE", value((int)SDL_IGNORE));
+    sdl.define_property("ENABLE", value((int)SDL_ENABLE));
+    sdl.define_property("QUERY", value((int)SDL_QUERY));
+    create_native_function(sdl, "eventState", &sdl::event_state);
   }
 }
