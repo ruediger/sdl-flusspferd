@@ -26,6 +26,7 @@ Optionally:
 - SQLite3 3.4+(for the SQLite3 plugin)
 - cURL (for the cURL plugin)
 - GMP (for the GMP plugin)
+- SDL (for the SDL plugin)
 
 Building & installing Flusspferd
 --------------------------------

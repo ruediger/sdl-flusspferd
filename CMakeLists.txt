@@ -1,8 +1,8 @@
-# vim:ts=4:sw=4:expandtab:autoindent:
+# -*-mode:cmake;coding:utf-8;tab-width:4;indent-tabs-mode:nil;-*- vim:ts=4:sw=4:expandtab:autoindent:enc=utf-8:
 #
 # The MIT License
 #
-# Copyright (c) 2008, 2009 Aristid Breitkreuz, Ash Berlin, Ruediger Sonderfeld,
+# Copyright (c) 2008, 2009 Aristid Breitkreuz, Ash Berlin, Rüdiger Sonderfeld,
 #                          Philipp Reh
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -146,6 +146,7 @@ option(
     "Fail configuration if some enabled plugins could not be configured"
     OFF)
 option(PLUGIN_GMP "Build GMP plugin" ON)
+option(PLUGIN_SDL "Build SDL plugin" ON)
 set(
     LINE_EDITOR
     "libedit"
@@ -290,6 +291,16 @@ if(PLUGIN_GMP)
     endif()
 endif()
 
+## SDL ######################################################################
+
+if(PLUGIN_SDL)
+  find_package(SDL)
+
+  if(FORCE_PLUGINS AND NOT SDL_FOUND)
+      message(SEND_ERROR "SDL plugin required but SDL not found")
+  endif()
+endif()
+
 ## Library ##################################################################
 
 file(
@@ -424,6 +435,12 @@ if(PLUGIN_GMP AND GMP_FOUND AND GMPXX_FOUND)
     set(PLUGINS ${PLUGINS} gmp)
     set(gmp_LIBRARIES ${GMPXX_LIBRARY} ${GMP_LIBRARY})
     include_directories(${GMP_INCLUDE_DIR})
+endif()
+
+if(PLUGIN_SDL AND SDL_FOUND)
+  set(PLUGINS ${PLUGINS} sdl)
+  set(sdl_LIBRARIES ${SDL_LIBRARY})
+  include_directories(${SDL_INCLUDE_DIR})
 endif()
 
 foreach(PLUGIN ${PLUGINS})

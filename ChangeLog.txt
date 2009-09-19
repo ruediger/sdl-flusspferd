@@ -1,6 +1,12 @@
 Flusspferd Change Log
 =====================
 
+Release ?.?
+-----------
+
+2009-09-13:
+- Added SDL plugin
+
 Release 0.8
 -----------
 
