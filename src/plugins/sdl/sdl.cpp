@@ -23,13 +23,8 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
 
-// TODO split this mess into several files (e.g. for Video, WM, Events and so on)
-
-#include "flusspferd/class.hpp"
-#include "flusspferd/create.hpp"
 #include "flusspferd/modules.hpp"
 #include "flusspferd/security.hpp"
-#include "flusspferd/class_description.hpp"
 
 #include <stdexcept>
 #include <cassert>

@@ -1,4 +1,4 @@
-SDL = require('sdl');
+const SDL = require('sdl');
 SDL.init(SDL.INIT_VIDEO);
 var surface = SDL.setVideoMode(640, 480, 16, SDL.SDL_SWSURFACE);
 SDL.WMSetCaption("Flusspferd", "(Flusspferd)");
