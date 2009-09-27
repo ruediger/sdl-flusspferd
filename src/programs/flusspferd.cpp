@@ -2,7 +2,8 @@
 /*
 The MIT License
 
-Copyright (c) 2008, 2009 Aristid Breitkreuz, Ash Berlin, Rüdiger Sonderfeld
+Copyright (c) 2008, 2009 Flusspferd contributors (see "CONTRIBUTORS" or
+                                       http://flusspferd.org/contributors.txt)
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -122,9 +123,9 @@ flusspferd_repl::flusspferd_repl(int argc, char **argv)
 
   // g.prototype() is available everywhere
 
-  flusspferd::security::create(g.prototype());
+  flusspferd::security::create(g);
 
-  flusspferd::load_core(g.prototype());
+  flusspferd::load_core(g);
 
   flusspferd::create_native_function<void (int)>(
     g, "quit",
@@ -143,13 +144,20 @@ int flusspferd_repl::run() {
 
   flusspferd::object require_obj =
       flusspferd::global()
-        .prototype()
         .get_property_object("require");
+
+  flusspferd::object module_obj = require_obj.get_property_object("main");
 
   typedef std::list<std::pair<std::string, Type> >::const_iterator iter;
   for (iter i = files.begin(), e = files.end(); i != e; ++i) {
     switch (i->second) {
     case File:
+      // TODO: Move this logic into modules.cpp and make it set the right values
+      if (!module_obj.has_own_property("id")) {
+        module_obj.set_property("uri", "fille://" + i->first);
+        module_obj.set_property("id", i->first);
+        require_obj.set_property("id", i->first);
+      }
       flusspferd::execute(i->first.c_str());
       break;
     case Expression:
@@ -191,6 +199,9 @@ int flusspferd_repl::run() {
   unsigned int line = 0;
 
   running = true;
+
+  // Disable strict mode for repl since its really annoying there.
+  co.set_strict(false);
 
   while (running && getline(source)) {
     unsigned int startline = ++line;
@@ -260,16 +271,19 @@ void flusspferd_repl::add_file(
 }
 
 void flusspferd_repl::load_config() {
+  // Define the prelude property so its not a strict warning to assign to it.
+  co.global().set_property("prelude", flusspferd::value());
+
   flusspferd::execute(config_file.c_str());
   config_loaded = true;
 
   // Get the prelude and execute it too
   flusspferd::value prelude = co.global().get_property("prelude");
-  
+  co.global().delete_property("prelude");
+
+
   if (!prelude.is_undefined_or_null()) {
-    flusspferd::execute(
-      prelude.to_string().c_str(),
-      flusspferd::global().prototype());
+    flusspferd::execute( prelude.to_string().c_str() );
   }
 }
 

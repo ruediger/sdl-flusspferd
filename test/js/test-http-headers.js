@@ -2,7 +2,8 @@
 /*
 The MIT License
 
-Copyright (c) 2008, 2009 Aristid Breitkreuz, Ash Berlin, Ruediger Sonderfeld
+Copyright (c) 2008, 2009 Flusspferd contributors (see "CONTRIBUTORS" or
+                                       http://flusspferd.org/contributors.txt)
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -39,7 +40,7 @@ exports.test_simple = function() {
 exports.test_multiline = function() {
   const hdr_str = "Set-Cookie: value=foo\r\n   bar;path=/\r\n";
 
-  got = HTTP.Headers.parse(hdr_str);
+  var got = HTTP.Headers.parse(hdr_str);
   asserts.same(
     got,
     new HTTP.Headers({"Set-Cookie": "value=foo bar;path=/"}),
