@@ -1074,6 +1074,16 @@ namespace sdl {
     return state;
   }
 
+  object get_relative_mouse_state() {
+    int x, y;
+    int ret = SDL_GetRelativeMouseState(&x, &y);
+    object state(flusspferd::create_object());
+    state.set_property("state", ret);
+    state.set_property("x", x);
+    state.set_property("y", y);
+    return state;
+  }
+
   /* Missing:
   General:
     SDL_SetError - Sets SDL Error
@@ -1238,5 +1248,7 @@ namespace sdl {
     create_native_function(sdl, "setModState", &sdl::set_mod_state);
     create_native_function(sdl, "pumpEvents", &::SDL_PumpEvents);
     create_native_function(sdl, "getMouseState", &sdl::get_mouse_state);
+    create_native_function(sdl, "getRelativeMouseState", &sdl::get_relative_mouse_state);
+    create_native_function(sdl, "joystickEventState", &::SDL_JoystickEventState);
   }
 }
