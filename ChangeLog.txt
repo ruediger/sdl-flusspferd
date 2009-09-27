@@ -1,7 +1,7 @@
 Flusspferd Change Log
 =====================
 
-Release 0.8
+Release ?.?
 -----------
 
 2009-09-26:
@@ -15,6 +15,12 @@ Release 0.8
 2009-09-20:
 - json2.js (http://www.json.org/json2.js) is now loaded to provide an ES5
   compatible JSON object for older spidermonkey
+
+2009-09-13:
+- Added SDL plugin
+
+Release 0.8
+-----------
 
 2009-09-19:
 - Immature plugins have been removed (and moved into feature branch).
