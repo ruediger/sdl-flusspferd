@@ -1080,9 +1080,6 @@ namespace sdl {
     SDL_WM_GetCaption - Gets the window title and icon name.
 
   Events:
-    SDL_Event_Structures
-    SDLMod - Modifier definitions
-    SDL_PumpEvents - Pumps the event loop, gathering events from the input devices
     SDL_PeepEvents - Checks the event queue for messages and optionally returns them
     SDL_WaitEvent - Waits indefinitely for the next available event
     SDL_PushEvent - Pushes an event onto the event queue
@@ -1219,5 +1216,6 @@ namespace sdl {
     create_native_function(sdl, "pollEvent", &sdl::poll_event);
     create_native_function(sdl, "getModState", &sdl::get_mod_state);
     create_native_function(sdl, "setModState", &sdl::set_mod_state);
+    create_native_function(sdl, "pumpEvents", &::SDL_PumpEvents);
   }
 }
