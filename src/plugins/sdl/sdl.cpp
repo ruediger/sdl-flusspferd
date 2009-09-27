@@ -1084,6 +1084,44 @@ namespace sdl {
     return state;
   }
 
+  // Joystick
+  FLUSSPFERD_CLASS_DESCRIPTION(
+   Joystick,
+   (constructor_name, "Joystick")
+   (constructible, false)
+   (full_name, "sdl.Joystick"))
+  {
+    SDL_Joystick *joystick;
+  public:
+    SDL_Joystick *get() { return joystick; }
+
+    Joystick(flusspferd::object const &self, SDL_Joystick *j)
+      : base_type(self), joystick(j)
+    { }
+
+    void close() {
+      SDL_JoystickClose(joystick);
+      joystick = 0x0;
+    }
+
+    ~Joystick() {
+      if(joystick)
+        close();
+    }
+
+    static Joystick &create(SDL_Joystick *j) {
+      return flusspferd::create_native_object<Joystick>(object(), j);
+    }
+  };
+
+  Joystick &joystick_open(int index) {
+    return Joystick::create(SDL_JoystickOpen(index));
+  }
+
+  void joystick_close(Joystick &j) {
+    j.close();
+  }
+
   /* Missing:
   General:
     SDL_SetError - Sets SDL Error
@@ -1124,7 +1162,6 @@ namespace sdl {
     SDL_GetCursor - Gets the currently active mouse cursor.
 
   Joystick:
-    SDL_JoystickOpen - Opens a joystick for use.
     SDL_JoystickIndex - Gets the index of an SDL_Joystick.
     SDL_JoystickNumAxes - Gets the number of joystick axes
     SDL_JoystickNumBalls - Gets the number of joystick trackballs
@@ -1134,7 +1171,6 @@ namespace sdl {
     SDL_JoystickGetHat - Gets the current state of a joystick hat
     SDL_JoystickGetButton - Gets the current state of a given button on a given joystick
     SDL_JoystickGetBall - Gets relative trackball motion
-    SDL_JoystickClose - Closes a previously opened joystick 
 
   and everything else
    */
@@ -1277,5 +1313,8 @@ namespace sdl {
     create_native_function(sdl, "joystickName", &::SDL_JoystickName);
     create_native_function(sdl, "joystickOpened", &::SDL_JoystickOpened);
     create_native_function(sdl, "joystickUpdate", &::SDL_JoystickUpdate);
+    load_class<sdl::Joystick>(sdl);
+    create_native_function(sdl, "joystickOpen", &sdl::joystick_open);
+    create_native_function(sdl, "joystickClose", &sdl::joystick_close);
   }
 }
