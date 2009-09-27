@@ -1124,16 +1124,12 @@ namespace sdl {
     SDL_GetCursor - Gets the currently active mouse cursor.
 
   Joystick:
-    SDL_NumJoysticks - Counts available joysticks.
-    SDL_JoystickName - Gets joystick name.
     SDL_JoystickOpen - Opens a joystick for use.
-    SDL_JoystickOpened - Determines if a joystick has been opened
     SDL_JoystickIndex - Gets the index of an SDL_Joystick.
     SDL_JoystickNumAxes - Gets the number of joystick axes
     SDL_JoystickNumBalls - Gets the number of joystick trackballs
     SDL_JoystickNumHats - Gets the number of joystick hats
     SDL_JoystickNumButtons - Gets the number of joystick buttons
-    SDL_JoystickUpdate - Updates the state of all joysticks
     SDL_JoystickGetAxis - Gets the current state of an axis
     SDL_JoystickGetHat - Gets the current state of a joystick hat
     SDL_JoystickGetButton - Gets the current state of a given button on a given joystick
@@ -1275,5 +1271,11 @@ namespace sdl {
     // Mouse
     create_native_function(sdl, "warpMouse", &::SDL_WarpMouse);
     create_native_function(sdl, "showCursor", &::SDL_ShowCursor);
+
+    // Joystick
+    create_native_function(sdl, "numJoysticks", &::SDL_NumJoysticks);
+    create_native_function(sdl, "joystickName", &::SDL_JoystickName);
+    create_native_function(sdl, "joystickOpened", &::SDL_JoystickOpened);
+    create_native_function(sdl, "joystickUpdate", &::SDL_JoystickUpdate);
   }
 }
