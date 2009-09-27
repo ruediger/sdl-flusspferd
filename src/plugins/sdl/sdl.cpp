@@ -1278,6 +1278,17 @@ namespace sdl {
     sdl.define_property("ENABLE", value((int)SDL_ENABLE));
     sdl.define_property("QUERY", value((int)SDL_QUERY));
     create_native_function(sdl, "eventState", &sdl::event_state);
+    load_class<sdl::ActiveEvent>(sdl);
+    load_class<sdl::KeyboardEvent>(sdl);
+    load_class<sdl::MouseMotionEvent>(sdl);
+    load_class<sdl::MouseButtonEvent>(sdl);
+    load_class<sdl::JoyAxisEvent>(sdl);
+    load_class<sdl::JoyBallEvent>(sdl);
+    load_class<sdl::JoyHatEvent>(sdl);
+    load_class<sdl::JoyButtonEvent>(sdl);
+    load_class<sdl::ResizeEvent>(sdl);
+    load_class<sdl::ExposeEvent>(sdl);
+    load_class<sdl::QuitEvent>(sdl);
     load_class<sdl::Event>(sdl);
     sdl.define_property("ACTIVEEVENT", value((int)SDL_ACTIVEEVENT));
     sdl.define_property("KEYDOWN", value((int)SDL_KEYDOWN));
