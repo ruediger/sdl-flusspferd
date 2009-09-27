@@ -1115,9 +1115,30 @@ namespace sdl {
     SDL_PushEvent - Pushes an event onto the event queue
     SDL_SetEventFilter - Sets up a filter to process all events
     SDL_GetKeyState - Gets a snapshot of the current keyboard state
-    SDL_GetRelativeMouseState - Retrieves the current state of the mouse
-    SDL_JoystickEventState - Enable/disable joystick event polling
     SDL_SetTextInputRect - Set the rectangle for input methods to display inputed Unicode text and candidate text 
+
+  Mouse:
+    SDL_CreateCursor - Creates a new mouse cursor.
+    SDL_FreeCursor - Frees a cursor created with SDL_CreateCursor.
+    SDL_SetCursor - Sets the currently active mouse cursor.
+    SDL_GetCursor - Gets the currently active mouse cursor.
+
+  Joystick:
+    SDL_NumJoysticks - Counts available joysticks.
+    SDL_JoystickName - Gets joystick name.
+    SDL_JoystickOpen - Opens a joystick for use.
+    SDL_JoystickOpened - Determines if a joystick has been opened
+    SDL_JoystickIndex - Gets the index of an SDL_Joystick.
+    SDL_JoystickNumAxes - Gets the number of joystick axes
+    SDL_JoystickNumBalls - Gets the number of joystick trackballs
+    SDL_JoystickNumHats - Gets the number of joystick hats
+    SDL_JoystickNumButtons - Gets the number of joystick buttons
+    SDL_JoystickUpdate - Updates the state of all joysticks
+    SDL_JoystickGetAxis - Gets the current state of an axis
+    SDL_JoystickGetHat - Gets the current state of a joystick hat
+    SDL_JoystickGetButton - Gets the current state of a given button on a given joystick
+    SDL_JoystickGetBall - Gets relative trackball motion
+    SDL_JoystickClose - Closes a previously opened joystick 
 
   and everything else
    */
@@ -1250,5 +1271,9 @@ namespace sdl {
     create_native_function(sdl, "getMouseState", &sdl::get_mouse_state);
     create_native_function(sdl, "getRelativeMouseState", &sdl::get_relative_mouse_state);
     create_native_function(sdl, "joystickEventState", &::SDL_JoystickEventState);
+
+    // Mouse
+    create_native_function(sdl, "warpMouse", &::SDL_WarpMouse);
+    create_native_function(sdl, "showCursor", &::SDL_ShowCursor);
   }
 }
