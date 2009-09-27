@@ -1,0 +1,36 @@
+// -*- mode: js2; -*- vim: ft=cpp:foldmethod=marker:foldmarker={{{,}}}
+/**
+ * @namespace sdl - SDL (Simple Direct Media Layer)
+ * @name sdl
+ *
+ * sdl is a wrapper for SDL (http://www.libsdl.org). The API is very close to
+ * the original C API of SDL. This might be a little strange for Javascript
+ * programmers. But the idea is that you can easily write higher level stuff
+ * on top of it. But are still able to easily port C SDL code to Flusspferd.
+ *
+ * The naming convention was adjusted to be more Javascript like. While SDL
+ * functions are named SDL_FooBar the same function will be available as
+ * sdl.fooBar in the wrapper.
+ *
+ * Most functions behave similar to the C API. Except for functions which
+ * use parameters for output (pointers). Those functions now return their
+ * data as a Javascript object with the parameter name as the property name.
+ * The same can be said about SDL_Rect.
+ *
+ * == Example: ==
+ * {{{
+ * const SDL = require('sdl');
+ * SDL.init(SDL.INIT_VIDEO);
+ * var surface = SDL.setVideoMode(640, 480, 16, SDL.SDL_SWSURFACE);
+ * SDL.WMSetCaption("Flusspferd", "(Flusspferd)");
+ * var image = SDL.loadBMP("/tmp/flusspferd-logo.bmp");
+ * SDL.blitSurface(image, surface);
+ * SDL.updateRect(surface, 0, 0, image.w, image.h);
+ * SDL.freeSurface(image);
+ * require('os').sleep(10000);
+ * SDL.quit();
+ * quit();
+ * }}}
+ *
+ * See the TODO file for functions which are not wrapped, yet.
+ */
