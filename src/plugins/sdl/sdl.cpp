@@ -1053,6 +1053,16 @@ namespace sdl {
     SDL_SetModState((SDLMod)s);
   }
 
+  object get_mouse_state() {
+    int x, y;
+    int ret = SDL_GetMouseState(&x, &y);
+    object state(flusspferd::create_object());
+    state.set_property("state", ret);
+    state.set_property("x", x);
+    state.set_property("y", y);
+    return state;
+  }
+
   /* Missing:
   General:
     SDL_SetError - Sets SDL Error
@@ -1085,7 +1095,6 @@ namespace sdl {
     SDL_PushEvent - Pushes an event onto the event queue
     SDL_SetEventFilter - Sets up a filter to process all events
     SDL_GetKeyState - Gets a snapshot of the current keyboard state
-    SDL_GetMouseState - Retrieves the current state of the mouse
     SDL_GetRelativeMouseState - Retrieves the current state of the mouse
     SDL_JoystickEventState - Enable/disable joystick event polling
     SDL_SetTextInputRect - Set the rectangle for input methods to display inputed Unicode text and candidate text 
@@ -1217,5 +1226,6 @@ namespace sdl {
     create_native_function(sdl, "getModState", &sdl::get_mod_state);
     create_native_function(sdl, "setModState", &sdl::set_mod_state);
     create_native_function(sdl, "pumpEvents", &::SDL_PumpEvents);
+    create_native_function(sdl, "getMouseState", &sdl::get_mouse_state);
   }
 }
