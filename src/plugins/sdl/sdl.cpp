@@ -733,6 +733,228 @@ namespace sdl {
 
   FLUSSPFERD_CLASS_DESCRIPTION
   (
+   MouseButtonEvent,
+   (constructor_name, "MouseButtonEvent")
+   (constructible, false)
+   (full_name, "sdl.MouseButtonEvent")
+   (properties,
+    ("type", getter, get_type)
+    ("which", getter, get_which)
+    ("button", getter, get_button)
+    ("state", getter, get_state)
+    ("x", getter, get_x)
+    ("y", getter, get_y)))
+  {
+    SDL_MouseButtonEvent event;
+  public:
+    int get_type() { return event.type; }
+    int get_which() { return event.which; }
+    int get_button() { return event.button; }
+    int get_state() { return event.state; }
+    int get_x() { return event.x; }
+    int get_y() { return event.y; }
+
+    MouseButtonEvent(flusspferd::object const &self, SDL_MouseButtonEvent const &event)
+      : base_type(self), event(event)
+    { }
+
+    static MouseButtonEvent &create(SDL_MouseButtonEvent const &e) {
+      return flusspferd::create_native_object<MouseButtonEvent>(object(), e);
+    }
+  };
+
+  FLUSSPFERD_CLASS_DESCRIPTION
+  (
+   JoyAxisEvent,
+   (constructor_name, "JoyAxisEvent")
+   (constructible, false)
+   (full_name, "sdl.JoyAxisEvent")
+   (properties,
+    ("type", getter, get_type)
+    ("which", getter, get_which)
+    ("axis", getter, get_axis)
+    ("value", getter, get_value)))
+  {
+    SDL_JoyAxisEvent event;
+  public:
+    int get_type() { return event.type; }
+    int get_which() { return event.which; }
+    int get_axis() { return event.axis; }
+    int get_value() { return event.value; }
+
+    JoyAxisEvent(flusspferd::object const &self, SDL_JoyAxisEvent const &event)
+      : base_type(self), event(event)
+    { }
+
+    static JoyAxisEvent &create(SDL_JoyAxisEvent const &e) {
+      return flusspferd::create_native_object<JoyAxisEvent>(object(), e);
+    }
+  };
+
+  FLUSSPFERD_CLASS_DESCRIPTION
+  (
+   JoyButtonEvent,
+   (constructor_name, "JoyButtonEvent")
+   (constructible, false)
+   (full_name, "sdl.JoyButtonEvent")
+   (properties,
+    ("type", getter, get_type)
+    ("which", getter, get_which)
+    ("button", getter, get_button)
+    ("state", getter, get_state)
+    ))
+  {
+    SDL_JoyButtonEvent event;
+  public:
+    int get_type() { return event.type; }
+    int get_which() { return event.which; }
+    int get_button() { return event.button; }
+    int get_state() { return event.state; }
+
+    JoyButtonEvent(flusspferd::object const &self, SDL_JoyButtonEvent const &event)
+      : base_type(self), event(event)
+    { }
+
+    static JoyButtonEvent &create(SDL_JoyButtonEvent const &e) {
+      return flusspferd::create_native_object<JoyButtonEvent>(object(), e);
+    }
+  };
+
+  FLUSSPFERD_CLASS_DESCRIPTION
+  (
+   JoyHatEvent,
+   (constructor_name, "JoyHatEvent")
+   (constructible, false)
+   (full_name, "sdl.JoyHatEvent")
+   (properties,
+    ("type", getter, get_type)
+    ("which", getter, get_which)
+    ("hat", getter, get_hat)
+    ("value", getter, get_value)
+    ))
+  {
+    SDL_JoyHatEvent event;
+  public:
+    int get_type() { return event.type; }
+    int get_which() { return event.which; }
+    int get_hat() { return event.hat; }
+    int get_value() { return event.value; }
+
+    JoyHatEvent(flusspferd::object const &self, SDL_JoyHatEvent const &event)
+      : base_type(self), event(event)
+    { }
+
+    static JoyHatEvent &create(SDL_JoyHatEvent const &e) {
+      return flusspferd::create_native_object<JoyHatEvent>(object(), e);
+    }
+  };
+
+  FLUSSPFERD_CLASS_DESCRIPTION
+  (
+   JoyBallEvent,
+   (constructor_name, "JoyBallEvent")
+   (constructible, false)
+   (full_name, "sdl.JoyBallEvent")
+   (properties,
+    ("type", getter, get_type)
+    ("which", getter, get_which)
+    ("ball", getter, get_ball)
+    ("xrel", getter, get_xrel)
+    ("yrel", getter, get_yrel)
+    ))
+  {
+    SDL_JoyBallEvent event;
+  public:
+    int get_type() { return event.type; }
+    int get_which() { return event.which; }
+    int get_ball() { return event.ball; }
+    int get_xrel() { return event.xrel; }
+    int get_yrel() { return event.yrel; }
+
+    JoyBallEvent(flusspferd::object const &self, SDL_JoyBallEvent const &event)
+      : base_type(self), event(event)
+    { }
+
+    static JoyBallEvent &create(SDL_JoyBallEvent const &e) {
+      return flusspferd::create_native_object<JoyBallEvent>(object(), e);
+    }
+  };
+
+  FLUSSPFERD_CLASS_DESCRIPTION
+  (
+   ResizeEvent,
+   (constructor_name, "ResizeEvent")
+   (constructible, false)
+   (full_name, "sdl.ResizeEvent")
+   (properties,
+    ("type", getter, get_type)
+    ("w", getter, get_w)
+    ("h", getter, get_h)
+    ))
+  {
+    SDL_ResizeEvent event;
+  public:
+    int get_type() { return event.type; }
+    int get_w() { return event.w; }
+    int get_h() { return event.h; }
+
+    ResizeEvent(flusspferd::object const &self, SDL_ResizeEvent const &event)
+      : base_type(self), event(event)
+    { }
+
+    static ResizeEvent &create(SDL_ResizeEvent const &e) {
+      return flusspferd::create_native_object<ResizeEvent>(object(), e);
+    }
+  };
+
+  FLUSSPFERD_CLASS_DESCRIPTION
+  (
+   ExposeEvent,
+   (constructor_name, "ExposeEvent")
+   (constructible, false)
+   (full_name, "sdl.ExposeEvent")
+   (properties,
+    ("type", getter, get_type)
+    ))
+  {
+    SDL_ExposeEvent event;
+  public:
+    int get_type() { return event.type; }
+
+    ExposeEvent(flusspferd::object const &self, SDL_ExposeEvent const &event)
+      : base_type(self), event(event)
+    { }
+
+    static ExposeEvent &create(SDL_ExposeEvent const &e) {
+      return flusspferd::create_native_object<ExposeEvent>(object(), e);
+    }
+  };
+
+  FLUSSPFERD_CLASS_DESCRIPTION
+  (
+   QuitEvent,
+   (constructor_name, "QuitEvent")
+   (constructible, false)
+   (full_name, "sdl.QuitEvent")
+   (properties,
+    ("type", getter, get_type)
+    ))
+  {
+    SDL_QuitEvent event;
+  public:
+    int get_type() { return event.type; }
+
+    QuitEvent(flusspferd::object const &self, SDL_QuitEvent const &event)
+      : base_type(self), event(event)
+    { }
+
+    static QuitEvent &create(SDL_QuitEvent const &e) {
+      return flusspferd::create_native_object<QuitEvent>(object(), e);
+    }
+  };
+
+  FLUSSPFERD_CLASS_DESCRIPTION
+  (
    Event,
    (constructor_name, "Event")
    (constructible, false)
@@ -742,21 +964,21 @@ namespace sdl {
     ("active", getter, get_active)
     ("key", getter, get_key)
     ("motion", getter, get_motion)
-    /*
-    button   Mouse button event (see SDL_MouseButtonEvent)
-    jaxis    Joystick axis motion event (see SDL_JoyAxisEvent)
-    jball    Joystick trackball motion event (see SDL_JoyBallEvent)
-    jhat     Joystick hat motion event (see SDL_JoyHatEvent)
-    jbutton  Joystick button event (see SDL_JoyButtonEvent)
-    resize   Application window resize event (see SDL_ResizeEvent)
-    expose   Application window expose event (see SDL_ExposeEvent)
-    quit     Application quit request event (see SDL_QuitEvent)
+    ("button", getter, get_button)
+    ("jaxis", getter, get_jaxis)
+    ("jball", getter, get_jball)
+    ("jhat", getter, get_jhat)
+    ("jbutton", getter, get_jbutton)
+    ("resize", getter, get_resize)
+    ("expose", getter, get_expose)
+    ("quit", getter, get_quit)
+    /* TODO
     user     User defined event (see SDL_UserEvent)
     syswm    Undefined window manager event (see SDL_SysWMEvent)
     */
     ))
   {
-        SDL_Event event;
+    SDL_Event event;
   public:
 
     int get_type() {
@@ -771,6 +993,38 @@ namespace sdl {
     MouseMotionEvent &get_motion() {
       return MouseMotionEvent::create(event.motion);
     }
+    MouseButtonEvent &get_button() {
+      return MouseButtonEvent::create(event.button);
+    }
+    JoyAxisEvent &get_jaxis() {
+      return JoyAxisEvent::create(event.jaxis);
+    }
+    JoyBallEvent &get_jball() {
+      return JoyBallEvent::create(event.jball);
+    }
+    JoyHatEvent &get_jhat() {
+      return JoyHatEvent::create(event.jhat);
+    }
+    JoyButtonEvent &get_jbutton() {
+      return JoyButtonEvent::create(event.jbutton);
+    }
+    ResizeEvent &get_resize() {
+      return ResizeEvent::create(event.resize);
+    }
+    ExposeEvent &get_expose() {
+      return ExposeEvent::create(event.expose);
+    }
+    QuitEvent &get_quit() {
+      return QuitEvent::create(event.quit);
+    }
+#if 0
+    UserEvent &get_user() {
+      return UserEvent::create(event.user);
+    }
+    SysWMEvent &get_syswm() {
+      return SysWMEvent::create(event.syswm);
+    }
+#endif
 
     Event(flusspferd::object const &self, SDL_Event const &e)
       : base_type(self), event(e)
