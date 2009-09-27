@@ -1093,7 +1093,10 @@ namespace sdl {
   {
     SDL_Joystick *joystick;
   public:
-    SDL_Joystick *get() { return joystick; }
+    SDL_Joystick *get() {
+      assert(joystick);
+      return joystick;
+    }
 
     Joystick(flusspferd::object const &self, SDL_Joystick *j)
       : base_type(self), joystick(j)
@@ -1120,6 +1123,51 @@ namespace sdl {
 
   void joystick_close(Joystick &j) {
     j.close();
+  }
+
+  int joystick_index(Joystick &j) {
+    return SDL_JoystickIndex(j.get());
+  }
+
+  int joystick_num_axes(Joystick &j) {
+    return SDL_JoystickNumAxes(j.get());
+  }
+
+  int joystick_num_balls(Joystick &j) {
+    return SDL_JoystickNumBalls(j.get());
+  }
+
+  int joystick_num_hats(Joystick &j) {
+    return SDL_JoystickNumHats(j.get());
+  }
+
+  int joystick_num_buttons(Joystick &j) {
+    return SDL_JoystickNumButtons(j.get());
+  }
+
+  int joystick_get_axis(Joystick &j, int axis) {
+    return SDL_JoystickGetAxis(j.get(), axis);
+  }
+
+  int joystick_get_hat(Joystick &j, int hat) {
+    return SDL_JoystickGetHat(j.get(), hat);
+  }
+
+  int joystick_get_button(Joystick &j, int button) {
+    return SDL_JoystickGetButton(j.get(), button);
+  }
+
+  object joystick_get_ball(Joystick &j, int ball) {
+    int dx, dy;
+    if(SDL_JoystickGetBall(j.get(), ball, &dx, &dy) == -1) {
+      return object();
+    }
+    else {
+      object ret(create_object());
+      ret.set_property("dx", dx);
+      ret.set_property("dy", dy);
+      return ret;
+    }
   }
 
   /* Missing:
@@ -1162,15 +1210,7 @@ namespace sdl {
     SDL_GetCursor - Gets the currently active mouse cursor.
 
   Joystick:
-    SDL_JoystickIndex - Gets the index of an SDL_Joystick.
-    SDL_JoystickNumAxes - Gets the number of joystick axes
-    SDL_JoystickNumBalls - Gets the number of joystick trackballs
-    SDL_JoystickNumHats - Gets the number of joystick hats
-    SDL_JoystickNumButtons - Gets the number of joystick buttons
-    SDL_JoystickGetAxis - Gets the current state of an axis
-    SDL_JoystickGetHat - Gets the current state of a joystick hat
-    SDL_JoystickGetButton - Gets the current state of a given button on a given joystick
-    SDL_JoystickGetBall - Gets relative trackball motion
+    COMPLETE
 
   and everything else
    */
@@ -1327,5 +1367,14 @@ namespace sdl {
     load_class<sdl::Joystick>(sdl);
     create_native_function(sdl, "joystickOpen", &sdl::joystick_open);
     create_native_function(sdl, "joystickClose", &sdl::joystick_close);
+    create_native_function(sdl, "joystickIndex", &sdl::joystick_index);
+    create_native_function(sdl, "joystickNumAxes", &sdl::joystick_num_axes);
+    create_native_function(sdl, "joystickNumBalls", &sdl::joystick_num_balls);
+    create_native_function(sdl, "joystickNumHats", &sdl::joystick_num_hats);
+    create_native_function(sdl, "joystickNumButtons", &sdl::joystick_num_buttons);
+    create_native_function(sdl, "joystickGetAxis", &sdl::joystick_get_axis);
+    create_native_function(sdl, "joystickGetHat", &sdl::joystick_get_hat);
+    create_native_function(sdl, "joystickGetButton", &sdl::joystick_get_button);
+    create_native_function(sdl, "joystickGetBall", &sdl::joystick_get_ball);
   }
 }
