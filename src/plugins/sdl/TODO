@@ -1,8 +1,7 @@
 # -*- mode:org -*-
 
-* TODO Provide a C++ interface
-It should be possible to wrap and unwrap the SDL structures in C++.
-** TODO Move interesting classes to seperate Headerfiles
+* TODO C++ Interface should be installed
+(This is a general issue!)
 * TODO Wrap the following functions
 ** TODO General
 	 - SDL_SetError :: Sets SDL Error

@@ -31,7 +31,6 @@ THE SOFTWARE.
 
 using namespace flusspferd;
 namespace sdl {
-namespace {
 	FLUSSPFERD_CLASS_DESCRIPTION(
    Joystick,
    (constructor_name, "Joystick")
@@ -44,6 +43,10 @@ namespace {
       assert(joystick);
       return joystick;
     }
+
+		SDL_Joystick *data() {
+			return joystick;
+		}
 
     Joystick(flusspferd::object const &self, SDL_Joystick *j)
       : base_type(self), joystick(j)
@@ -64,6 +67,15 @@ namespace {
     }
   };
 
+	Joystick &wrap(SDL_Joystick *j) {
+		return Joystick::create(j);
+	}
+
+	SDL_Joystick *unwrap(Joystick &j) {
+		return j.data();
+	}
+
+namespace {
   Joystick &joystick_open(int index) {
     return Joystick::create(SDL_JoystickOpen(index));
   }

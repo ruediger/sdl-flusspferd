@@ -33,19 +33,6 @@ THE SOFTWARE.
 using namespace flusspferd;
 
 namespace sdl {
-namespace {
-	char const *get_key_name(int key) {
-    return SDL_GetKeyName((SDLKey)key);
-  }
-
-  int get_app_state() {
-    return SDL_GetAppState();
-  }
-
-  int event_state(int type, int state) {
-    return event_state(type, state);
-  }
-
   FLUSSPFERD_CLASS_DESCRIPTION
   (
    ActiveEvent,
@@ -59,6 +46,8 @@ namespace {
   {
     SDL_ActiveEvent event;
   public:
+		SDL_ActiveEvent &data() { return event; }
+
     int get_type()  { return event.type; }
     int get_gain()  { return event.gain; }
     int get_state() { return event.state; }
@@ -86,6 +75,8 @@ namespace {
   {
     SDL_keysym k;
   public:
+		SDL_keysym &data() { return k; }
+
     int get_scancode() { return k.scancode; }
     int get_sym()      { return k.sym; }
     int get_mod()      { return k.mod; }
@@ -113,6 +104,8 @@ namespace {
   {
     SDL_KeyboardEvent event;
   public:
+		SDL_KeyboardEvent &data() { return event; }
+
     int    get_type()    { return event.type; }
     int    get_state()   { return event.state; }
     Keysym &get_keysym() { return Keysym::create(event.keysym); }
@@ -141,6 +134,7 @@ namespace {
   {
     SDL_MouseMotionEvent e;
   public:
+		SDL_MouseMotionEvent &data() { return e; }
 
     int get_type() { return e.type; }
     int get_state() { return e.state; }
@@ -174,6 +168,8 @@ namespace {
   {
     SDL_MouseButtonEvent event;
   public:
+		SDL_MouseButtonEvent &data() { return event; }
+
     int get_type() { return event.type; }
     int get_which() { return event.which; }
     int get_button() { return event.button; }
@@ -204,6 +200,8 @@ namespace {
   {
     SDL_JoyAxisEvent event;
   public:
+		SDL_JoyAxisEvent &data() { return event; }
+
     int get_type() { return event.type; }
     int get_which() { return event.which; }
     int get_axis() { return event.axis; }
@@ -233,6 +231,8 @@ namespace {
   {
     SDL_JoyButtonEvent event;
   public:
+		SDL_JoyButtonEvent &data() { return event; }
+
     int get_type() { return event.type; }
     int get_which() { return event.which; }
     int get_button() { return event.button; }
@@ -262,6 +262,8 @@ namespace {
   {
     SDL_JoyHatEvent event;
   public:
+		SDL_JoyHatEvent &data() { return event; }
+
     int get_type() { return event.type; }
     int get_which() { return event.which; }
     int get_hat() { return event.hat; }
@@ -292,6 +294,8 @@ namespace {
   {
     SDL_JoyBallEvent event;
   public:
+		SDL_JoyBallEvent &data() { return event; }
+
     int get_type() { return event.type; }
     int get_which() { return event.which; }
     int get_ball() { return event.ball; }
@@ -321,6 +325,8 @@ namespace {
   {
     SDL_ResizeEvent event;
   public:
+		SDL_ResizeEvent &data() { return event; }
+
     int get_type() { return event.type; }
     int get_w() { return event.w; }
     int get_h() { return event.h; }
@@ -346,6 +352,8 @@ namespace {
   {
     SDL_ExposeEvent event;
   public:
+		SDL_ExposeEvent &data() { return event; }
+
     int get_type() { return event.type; }
 
     ExposeEvent(flusspferd::object const &self, SDL_ExposeEvent const &event)
@@ -369,6 +377,8 @@ namespace {
   {
     SDL_QuitEvent event;
   public:
+		SDL_QuitEvent &data() { return event; }
+
     int get_type() { return event.type; }
 
     QuitEvent(flusspferd::object const &self, SDL_QuitEvent const &event)
@@ -407,6 +417,7 @@ namespace {
   {
     SDL_Event event;
   public:
+		SDL_Event &data() { return event; }
 
     int get_type() {
       return event.type;
@@ -461,6 +472,110 @@ namespace {
       return flusspferd::create_native_object<Event>(object(), e);
     }
   };
+
+	ActiveEvent &wrap(SDL_ActiveEvent const &p) {
+		return ActiveEvent::create(p);
+	}
+	SDL_ActiveEvent &unwrap(ActiveEvent &p) {
+		return p.data();
+	}
+
+	Keysym &wrap(SDL_keysym const &p) {
+		return Keysym::create(p);
+	}
+	SDL_keysym &unwrap(Keysym &p) {
+		return p.data();
+	}
+
+	KeyboardEvent &wrap(SDL_KeyboardEvent const &p) {
+		return KeyboardEvent::create(p);
+	}
+	SDL_KeyboardEvent &unwrap(KeyboardEvent &p) {
+		return p.data();
+	}
+
+	MouseMotionEvent &wrap(SDL_MouseMotionEvent const &p) {
+		return MouseMotionEvent::create(p);
+	}
+	SDL_MouseMotionEvent &unwrap(MouseMotionEvent &p) {
+		return p.data();
+	}
+
+	MouseButtonEvent &wrap(SDL_MouseButtonEvent const &p) {
+		return MouseButtonEvent::create(p);
+	}
+	SDL_MouseButtonEvent &unwrap(MouseButtonEvent &p) {
+		return p.data();
+	}
+
+	JoyAxisEvent &wrap(SDL_JoyAxisEvent const &p) {
+		return JoyAxisEvent::create(p);
+	}
+	SDL_JoyAxisEvent &unwrap(JoyAxisEvent &p) {
+		return p.data();
+	}
+
+	JoyButtonEvent &wrap(SDL_JoyButtonEvent const &p) {
+		return JoyButtonEvent::create(p);
+	}
+	SDL_JoyButtonEvent &unwrap(JoyButtonEvent &p) {
+		return p.data();
+	}
+
+	JoyHatEvent &wrap(SDL_JoyHatEvent const &p) {
+		return JoyHatEvent::create(p);
+	}
+	SDL_JoyHatEvent &unwrap(JoyHatEvent &p) {
+		return p.data();
+	}
+
+	JoyBallEvent &wrap(SDL_JoyBallEvent const &p) {
+		return JoyBallEvent::create(p);
+	}
+	SDL_JoyBallEvent &unwrap(JoyBallEvent &p) {
+		return p.data();
+	}
+
+	ResizeEvent &wrap(SDL_ResizeEvent const &p) {
+		return ResizeEvent::create(p);
+	}
+	SDL_ResizeEvent &unwrap(ResizeEvent &p) {
+		return p.data();
+	}
+
+	ExposeEvent &wrap(SDL_ExposeEvent const &p) {
+		return ExposeEvent::create(p);
+	}
+	SDL_ExposeEvent &unwrap(ExposeEvent &p) {
+		return p.data();
+	}
+
+	QuitEvent &wrap(SDL_QuitEvent const &p) {
+		return QuitEvent::create(p);
+	}
+	SDL_QuitEvent &unwrap(QuitEvent &p) {
+		return p.data();
+	}
+
+	Event &wrap(SDL_Event const &p) {
+		return Event::create(p);
+	}
+	SDL_Event &unwrap(Event &p) {
+		return p.data();
+	}
+
+namespace {
+	char const *get_key_name(int key) {
+    return SDL_GetKeyName((SDLKey)key);
+  }
+
+  int get_app_state() {
+    return SDL_GetAppState();
+  }
+
+  int event_state(int type, int state) {
+    return event_state(type, state);
+  }
 
   object poll_event() {
     SDL_Event event;

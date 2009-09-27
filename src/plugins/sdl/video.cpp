@@ -63,6 +63,12 @@ namespace sdl {
   public:
     SDL_PixelFormat *format;
 
+		SDL_PixelFormat *data() { return format; }
+		SDL_PixelFormat *get() {
+			assert(format);
+			return format;
+		}
+
     int get_bitspp() {
       assert(format);
       return format->BitsPerPixel;
@@ -139,6 +145,13 @@ namespace sdl {
     }
   };
 
+	PixelFormat &wrap(SDL_PixelFormat *p) {
+		return PixelFormat::create(p);
+	}
+	SDL_PixelFormat *unwrap(PixelFormat &p) {
+		return p.data();
+	}
+
   class Surface;
 
   FLUSSPFERD_CLASS_DESCRIPTION
@@ -154,22 +167,24 @@ namespace sdl {
     ("setpixel", bind, setpixel))
    )
   {
-    Uint8 *data;
+    Uint8 *data_;
   public:
+		Uint8 *data() { return data_; }
+
     int get(int n) {
-      assert(data && n > 0);
-      return data[n];
+      assert(data_ && n > 0);
+      return data_[n];
     }
     void set(int n, int byte) {
-      assert(data && n > 0 && byte <= std::numeric_limits<Uint8>::max());
-      data[n] = byte;
+      assert(data_ && n > 0 && byte <= std::numeric_limits<Uint8>::max());
+      data_[n] = byte;
     }
 
     int getpixel(Surface &surface, int x, int y);
     void setpixel(Surface &surface, int x, int y, int color);
 
     PixelData(flusspferd::object const &self, Uint8 *data)
-      : base_type(self), data(data)
+      : base_type(self), data_(data)
     {
       assert(data);
     }
@@ -179,11 +194,18 @@ namespace sdl {
     }
   };
 
+	PixelData &wrap(void *p) {
+		return PixelData::create(p);
+	}
+	void *unwrap(PixelData &p) {
+		return reinterpret_cast<void*>(p.data());
+	}
+
   int PixelData::getpixel(Surface &s, int x, int y) {
     assert(s.surface);
     SDL_Surface *surface = s.surface;
     int const bpp = surface->format->BytesPerPixel;
-    Uint8 *p = data + y * surface->pitch + x * bpp;
+    Uint8 *p = data_ + y * surface->pitch + x * bpp;
     switch (bpp) {
     case 1:
       return *p;
@@ -208,7 +230,7 @@ namespace sdl {
     assert(s.surface);
     SDL_Surface *surface = s.surface;
     int const bpp = surface->format->BytesPerPixel;
-    Uint8 *p = data + y * surface->pitch + x * bpp;
+    Uint8 *p = data_ + y * surface->pitch + x * bpp;
     switch(bpp) {
     case 1:
       *p = color;
@@ -248,7 +270,14 @@ namespace sdl {
 		assert(surface);
 		return rect2object(surface->clip_rect);
 	}
-namespace {
+
+	Surface &wrap(SDL_Surface *s) {
+		return Surface::create(s);
+	}
+	SDL_Surface *unwrap(Surface &s) {
+		return s.surface;
+	}
+
 	FLUSSPFERD_CLASS_DESCRIPTION
   (
    Color,
@@ -262,6 +291,8 @@ namespace {
   {
   public:
     SDL_Color color;
+
+		SDL_Color &data() { return color; }
 
     int get_r() { return color.r; }
     void set_r(int r) { color.r = r; }
@@ -301,7 +332,15 @@ namespace {
       return flusspferd::create_native_object<Color>(object(), color);
     }
   };
-  
+
+	Color &wrap(SDL_Color const &p) {
+		return Color::create(p);
+	}
+	SDL_Color &unwrap(Color &p) {
+		return p.data();
+	}
+
+namespace {  
   Surface &set_video_mode(int width, int height, int bpp, Uint32 flags) {
     SDL_Surface *surface = SDL_SetVideoMode(width, height, bpp, flags);
     if(!surface) {
