@@ -237,6 +237,28 @@ namespace sdl {
     key.define_property("UNDO", value((int)SDLK_UNDO));
     return key;
   }
+
+  flusspferd::object mod_object() {
+    using namespace flusspferd;
+    object mod(create_object());
+    mod.define_property("NONE", value((int)KMOD_NONE));
+    mod.define_property("LSHIFT", value((int)KMOD_LSHIFT));
+    mod.define_property("RSHIFT", value((int)KMOD_RSHIFT));
+    mod.define_property("LCTRL", value((int)KMOD_LCTRL));
+    mod.define_property("RCTRL", value((int)KMOD_RCTRL));
+    mod.define_property("LALT", value((int)KMOD_LALT));
+    mod.define_property("RALT", value((int)KMOD_RALT));
+    mod.define_property("LMETA", value((int)KMOD_LMETA));
+    mod.define_property("RMETA", value((int)KMOD_RMETA));
+    mod.define_property("NUM", value((int)KMOD_NUM));
+    mod.define_property("CAPS", value((int)KMOD_CAPS));
+    mod.define_property("MODE", value((int)KMOD_MODE));
+    mod.define_property("CTRL", value((int)KMOD_CTRL));
+    mod.define_property("SHIFT", value((int)KMOD_SHIFT));
+    mod.define_property("ALT", value((int)KMOD_ALT));
+    mod.define_property("META", value((int)KMOD_META));
+    return mod;
+  }
 }
 
 #endif

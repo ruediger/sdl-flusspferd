@@ -1,4 +1,4 @@
-// -*- mode:c++; coding:utf-8; tab-width:2; indent-tabs-mode:nil; c-basic-offset:2; -*- vim:ts=2:sw=2:expandtab:autoindent:filetype=cpp:enc=utf-8:
+// -*- mode:c++; coding:utf-8; tab-width:2; indent-tabs-mode:nil; c-basic-offset:2; compile-command: cd ../../.. && make; -*- vim:ts=2:sw=2:expandtab:autoindent:filetype=cpp:enc=utf-8:
 /*
 The MIT License
 
@@ -22,6 +22,8 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
+
+// TODO split this mess into several files (e.g. for Video, WM, Events and so on)
 
 #include "flusspferd/class.hpp"
 #include "flusspferd/create.hpp"
@@ -617,6 +619,186 @@ namespace sdl {
     return event_state(type, state);
   }
 
+  FLUSSPFERD_CLASS_DESCRIPTION
+  (
+   ActiveEvent,
+   (constructor_name, "ActiveEvent")
+   (constructible, false)
+   (full_name, "sdl.ActiveEvent")
+   (properties,
+    ("type", getter, get_type)
+    ("gain", getter, get_type)
+    ("state", getter, get_state)))
+  {
+    SDL_ActiveEvent event;
+  public:
+    int get_type()  { return event.type; }
+    int get_gain()  { return event.gain; }
+    int get_state() { return event.state; }
+
+    ActiveEvent(flusspferd::object const &self, SDL_ActiveEvent const &e)
+      : base_type(self), event(e)
+    { }
+
+    static ActiveEvent &create(SDL_ActiveEvent const &e) {
+      return flusspferd::create_native_object<ActiveEvent>(object(), e);
+    }
+  };
+
+  FLUSSPFERD_CLASS_DESCRIPTION
+  (
+   Keysym,
+   (constructor_name, "Keysym")
+   (constructible, false)
+   (full_name, "sdl.Keysym")
+   (properties,
+    ("scancode", getter, get_scancode)
+    ("sym", getter, get_sym)
+    ("mod", getter, get_mod)
+    ("unicode", getter, get_unicode)))
+  {
+    SDL_keysym k;
+  public:
+    int get_scancode() { return k.scancode; }
+    int get_sym()      { return k.sym; }
+    int get_mod()      { return k.mod; }
+    int get_unicode()  { return k.unicode; }
+
+    Keysym(flusspferd::object const &self, SDL_keysym const &k)
+      : base_type(self), k(k)
+    { }
+
+    static Keysym &create(SDL_keysym const &k) {
+      return flusspferd::create_native_object<Keysym>(object(), k);
+    }
+  };
+
+  FLUSSPFERD_CLASS_DESCRIPTION
+  (
+   KeyboardEvent,
+   (constructor_name, "KeyboardEvent")
+   (constructible, false)
+   (full_name, "sdl.KeyboardEvent")
+   (properties,
+    ("type", getter, get_type)
+    ("state", getter, get_state)
+    ("keysym", getter, get_keysym)))
+  {
+    SDL_KeyboardEvent event;
+  public:
+    int    get_type()    { return event.type; }
+    int    get_state()   { return event.state; }
+    Keysym &get_keysym() { return Keysym::create(event.keysym); }
+
+    KeyboardEvent(flusspferd::object const &o, SDL_KeyboardEvent const &e)
+      : base_type(o), event(e)
+    { }
+
+    static KeyboardEvent &create(SDL_KeyboardEvent const &e) {
+      return flusspferd::create_native_object<KeyboardEvent>(object(), e);
+    }
+  };
+
+  FLUSSPFERD_CLASS_DESCRIPTION
+  (MouseMotionEvent,
+   (constructor_name, "MouseMotionEvent")
+   (constructible, false)
+   (full_name, "sdl.MouseMotionEvent")
+   (properties,
+    ("type", getter, get_type)
+    ("state", getter, get_state)
+    ("x", getter, get_x)
+    ("y", getter, get_y)
+    ("xrel", getter, get_xrel)
+    ("yrel", getter, get_yrel)))
+  {
+    SDL_MouseMotionEvent e;
+  public:
+
+    int get_type() { return e.type; }
+    int get_state() { return e.state; }
+    int get_x() { return e.x; }
+    int get_y() { return e.y; }
+    int get_xrel() { return e.xrel; }
+    int get_yrel() { return e.yrel; }
+
+    MouseMotionEvent(flusspferd::object const &self, SDL_MouseMotionEvent const &e)
+      : base_type(self), e(e)
+    { }
+
+    static MouseMotionEvent &create(SDL_MouseMotionEvent const &e) {
+      return flusspferd::create_native_object<MouseMotionEvent>(object(), e);
+    }
+  };
+
+  FLUSSPFERD_CLASS_DESCRIPTION
+  (
+   Event,
+   (constructor_name, "Event")
+   (constructible, false)
+   (full_name, "sdl.Event")
+   (properties,
+    ("type", getter, get_type)
+    ("active", getter, get_active)
+    ("key", getter, get_key)
+    ("motion", getter, get_motion)
+    /*
+    button   Mouse button event (see SDL_MouseButtonEvent)
+    jaxis    Joystick axis motion event (see SDL_JoyAxisEvent)
+    jball    Joystick trackball motion event (see SDL_JoyBallEvent)
+    jhat     Joystick hat motion event (see SDL_JoyHatEvent)
+    jbutton  Joystick button event (see SDL_JoyButtonEvent)
+    resize   Application window resize event (see SDL_ResizeEvent)
+    expose   Application window expose event (see SDL_ExposeEvent)
+    quit     Application quit request event (see SDL_QuitEvent)
+    user     User defined event (see SDL_UserEvent)
+    syswm    Undefined window manager event (see SDL_SysWMEvent)
+    */
+    ))
+  {
+        SDL_Event event;
+  public:
+
+    int get_type() {
+      return event.type;
+    }
+    ActiveEvent &get_active() {
+      return ActiveEvent::create(event.active);
+    }
+    KeyboardEvent &get_key() {
+      return KeyboardEvent::create(event.key);
+    }
+    MouseMotionEvent &get_motion() {
+      return MouseMotionEvent::create(event.motion);
+    }
+
+    Event(flusspferd::object const &self, SDL_Event const &e)
+      : base_type(self), event(e)
+    { }
+
+    static Event &create(SDL_Event const &e) {
+      return flusspferd::create_native_object<Event>(object(), e);
+    }
+  };
+
+  object poll_event() {
+    SDL_Event event;
+    int i = SDL_PollEvent(&event);
+    if(i == 0) {
+      return object();
+    }
+    else {
+      return Event::create(event);
+    }
+  }
+
+  int get_mod_state() {
+    return SDL_GetModState();
+  }
+  void set_mod_state(int s) {
+    SDL_SetModState((SDLMod)s);
+  }
+
   /* Missing:
   General:
     SDL_SetError - Sets SDL Error
@@ -648,13 +830,10 @@ namespace sdl {
     SDLMod - Modifier definitions
     SDL_PumpEvents - Pumps the event loop, gathering events from the input devices
     SDL_PeepEvents - Checks the event queue for messages and optionally returns them
-    SDL_PollEvent - Polls for currently pending events
     SDL_WaitEvent - Waits indefinitely for the next available event
     SDL_PushEvent - Pushes an event onto the event queue
     SDL_SetEventFilter - Sets up a filter to process all events
     SDL_GetKeyState - Gets a snapshot of the current keyboard state
-    SDL_GetModState - Gets the state of modifier keys
-    SDL_SetModState - Sets the state of modifier keys
     SDL_GetMouseState - Retrieves the current state of the mouse
     SDL_GetRelativeMouseState - Retrieves the current state of the mouse
     SDL_JoystickEventState - Enable/disable joystick event polling
@@ -750,6 +929,7 @@ namespace sdl {
 
     // Events
     sdl.define_property("key", key_object());
+    sdl.define_property("kmod", mod_object());
     create_native_function(sdl, "enableUNICODE", &::SDL_EnableUNICODE);
     create_native_function(sdl, "enableKeyRepeat", &::SDL_EnableKeyRepeat);
     create_native_function(sdl, "getKeyName", &sdl::get_key_name);
@@ -765,5 +945,25 @@ namespace sdl {
     sdl.define_property("ENABLE", value((int)SDL_ENABLE));
     sdl.define_property("QUERY", value((int)SDL_QUERY));
     create_native_function(sdl, "eventState", &sdl::event_state);
+    load_class<sdl::Event>(sdl);
+    sdl.define_property("ACTIVEEVENT", value((int)SDL_ACTIVEEVENT));
+    sdl.define_property("KEYDOWN", value((int)SDL_KEYDOWN));
+    sdl.define_property("KEYUP", value((int)SDL_KEYUP));
+    sdl.define_property("MOUSEMOTION", value((int)SDL_MOUSEMOTION));
+    sdl.define_property("MOUSEBUTTONDOWN", value((int)SDL_MOUSEBUTTONDOWN));
+    sdl.define_property("MOUSEBUTTONUP", value((int)SDL_MOUSEBUTTONUP));
+    sdl.define_property("JOYAXISMOTION", value((int)SDL_JOYAXISMOTION));
+    sdl.define_property("JOYBALLMOTION", value((int)SDL_JOYBALLMOTION));
+    sdl.define_property("JOYHATMOTION", value((int)SDL_JOYHATMOTION));
+    sdl.define_property("JOYBUTTONDOWN", value((int)SDL_JOYBUTTONDOWN));
+    sdl.define_property("JOYBUTTONUP", value((int)SDL_JOYBUTTONUP));
+    sdl.define_property("VIDEORESIZE", value((int)SDL_VIDEORESIZE));
+    sdl.define_property("VIDEOEXPOSE", value((int)SDL_VIDEOEXPOSE));
+    sdl.define_property("QUIT", value((int)SDL_QUIT));
+    sdl.define_property("USEREVENT", value((int)SDL_USEREVENT));
+    sdl.define_property("SYSWMEVENT", value((int)SDL_SYSWMEVENT));
+    create_native_function(sdl, "pollEvent", &sdl::poll_event);
+    create_native_function(sdl, "getModState", &sdl::get_mod_state);
+    create_native_function(sdl, "setModState", &sdl::set_mod_state);
   }
 }
