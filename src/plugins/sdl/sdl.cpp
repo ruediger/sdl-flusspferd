@@ -1046,6 +1046,17 @@ namespace sdl {
     }
   }
 
+  object wait_event() {
+    SDL_Event event;
+    int i = SDL_WaitEvent(&event);
+    if(i == 0) {
+      return object();
+    }
+    else {
+      return Event::create(event);
+    }
+  }
+
   int get_mod_state() {
     return SDL_GetModState();
   }
@@ -1091,7 +1102,6 @@ namespace sdl {
 
   Events:
     SDL_PeepEvents - Checks the event queue for messages and optionally returns them
-    SDL_WaitEvent - Waits indefinitely for the next available event
     SDL_PushEvent - Pushes an event onto the event queue
     SDL_SetEventFilter - Sets up a filter to process all events
     SDL_GetKeyState - Gets a snapshot of the current keyboard state
@@ -1223,6 +1233,7 @@ namespace sdl {
     sdl.define_property("USEREVENT", value((int)SDL_USEREVENT));
     sdl.define_property("SYSWMEVENT", value((int)SDL_SYSWMEVENT));
     create_native_function(sdl, "pollEvent", &sdl::poll_event);
+    create_native_function(sdl, "waitEvent", &sdl::wait_event);
     create_native_function(sdl, "getModState", &sdl::get_mod_state);
     create_native_function(sdl, "setModState", &sdl::set_mod_state);
     create_native_function(sdl, "pumpEvents", &::SDL_PumpEvents);
