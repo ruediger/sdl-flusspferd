@@ -1,0 +1,69 @@
+# -*- mode:org -*-
+
+* TODO Provide a C++ interface
+It should be possible to wrap and unwrap the SDL structures in C++.
+** TODO Move interesting classes to seperate Headerfiles
+* TODO Wrap the following functions
+** TODO General
+	 - SDL_SetError :: Sets SDL Error
+	 - SDL_LoadObject :: Loads a shared object.
+   - SDL_LoadFunction :: Returns the address of a function in a loaded shared object.
+   - SDL_UnloadObject :: Unloads a shared object.
+   - SDL_envvars :: SDL environment variables
+
+** TODO Video
+  - SDL_GetVideoInfo
+  - SDL_ListModes
+  - SDL_VideoModeOK
+  - SDL_UpdateRects
+  - SDL_SetPalette
+  - SDL_GetGammaRamp
+  - SDL_SetGammaRamp
+  - SDL_GetRGBA
+  - SDL_CreateRGBSurface
+  - SDL_CreateRGBSurfaceFrom
+  - SDL_GL*
+  - SDL_*YUV*
+
+** TODO Window Management
+  - SDL_GetWMInfo :: Gets window-manager specific information, if available
+  - SDL_WM_GetCaption :: Gets the window title and icon name.
+
+** TODO Events
+  - SDL_PeepEvents :: Checks the event queue for messages and optionally returns them
+  - SDL_PushEvent :: Pushes an event onto the event queue
+  - SDL_SetEventFilter :: Sets up a filter to process all events
+  - SDL_GetKeyState :: Gets a snapshot of the current keyboard state
+  - SDL_SetTextInputRect :: Set the rectangle for input methods to display inputed Unicode text and candidate text 
+
+** TODO Mouse
+  - SDL_CreateCursor :: Creates a new mouse cursor.
+  - SDL_FreeCursor :: Frees a cursor created with SDL_CreateCursor.
+  - SDL_SetCursor :: Sets the currently active mouse cursor.
+  - SDL_GetCursor :: Gets the currently active mouse cursor.
+
+** DONE Joystick
+
+** TODO Audio
+  - SDL_AudioSpec :: Audio Specification Structure
+  - SDL_OpenAudio :: Opens the audio device with the desired parameters.
+  - SDL_PauseAudio :: Pauses and unpauses the audio callback processing
+  - SDL_GetAudioStatus :: Gets the current audio state
+  - SDL_LoadWAV :: Loads a WAVE file
+  - SDL_FreeWAV :: Frees previously opened WAV data
+  - SDL_AudioCVT :: Audio Conversion Structure
+  - SDL_BuildAudioCVT :: Initializes a SDL_AudioCVT - structure for conversion
+  - SDL_ConvertAudio :: Converts audio data to a desired audio format.
+  - SDL_MixAudio :: Mixes audio data
+  - SDL_LockAudio :: Locks out the callback function
+  - SDL_UnlockAudio :: Unlocks the callback function
+  - SDL_CloseAudio :: Shuts down audio processing and closes the audio device. 
+
+** CD-ROM
+  I won't wrap this. I don't think anybody uses it (except for old Loki games).
+
+** Multithreading
+  I won't wrap this. This should be provided by a different Plugin.
+
+** Time
+  This should probably also be provided by a different Plugin (like os).

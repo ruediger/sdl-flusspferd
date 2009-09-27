@@ -1,5 +1,7 @@
 // -*- mode:c++; -*- vim:ts=2:sw=2:expandtab:autoindent:filetype=cpp:enc=utf-8:
 /*
+Contains functions to convert SDL_Rect into a flusspferd object and vice versa
+
 The MIT License
 
 Copyright (c) 2009 Rüdiger Sonderfeld
@@ -22,39 +24,15 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
+#ifndef FLUSSPFERD_PLUGINS_SDL_RECT_HPP
+#define FLUSSPFERD_PLUGINS_SDL_RECT_HPP
 
-// TODO split this mess into several files (e.g. for Video, WM, Events and so on)
-
-#include "flusspferd/class.hpp"
-#include "flusspferd/create.hpp"
-#include "flusspferd/modules.hpp"
-#include "flusspferd/security.hpp"
-#include "flusspferd/class_description.hpp"
-
-#include <stdexcept>
-#include <cassert>
-#include <limits>
-
+#include <flusspferd/object.hpp>
 #include <SDL.h>
 
-#include "general.hpp"
-#include "video.hpp"
-#include "wm.hpp"
-#include "events.hpp"
-#include "mouse.hpp"
-#include "joystick.hpp"
-
-using namespace flusspferd;
-
 namespace sdl {
-  FLUSSPFERD_LOADER_SIMPLE(sdl) {
-    local_root_scope scope;
-
-    load_general(sdl);
-    load_video(sdl);
-    load_wm(sdl);
-    load_events(sdl);
-    load_mouse(sdl);
-    load_joystick(sdl);
-  }
+	flusspferd::object rect2object(SDL_Rect const &r);
+	SDL_Rect object2rect(flusspferd::object const &o);
 }
+
+#endif

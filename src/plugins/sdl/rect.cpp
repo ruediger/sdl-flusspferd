@@ -1,5 +1,7 @@
 // -*- mode:c++; -*- vim:ts=2:sw=2:expandtab:autoindent:filetype=cpp:enc=utf-8:
 /*
+Contains functions to convert SDL_Rect into a flusspferd object and vice versa
+
 The MIT License
 
 Copyright (c) 2009 Rüdiger Sonderfeld
@@ -22,39 +24,40 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
+#include "rect.hpp"
 
-// TODO split this mess into several files (e.g. for Video, WM, Events and so on)
-
-#include "flusspferd/class.hpp"
-#include "flusspferd/create.hpp"
-#include "flusspferd/modules.hpp"
-#include "flusspferd/security.hpp"
-#include "flusspferd/class_description.hpp"
-
-#include <stdexcept>
-#include <cassert>
-#include <limits>
-
-#include <SDL.h>
-
-#include "general.hpp"
-#include "video.hpp"
-#include "wm.hpp"
-#include "events.hpp"
-#include "mouse.hpp"
-#include "joystick.hpp"
+#include <flusspferd/create.hpp>
+#include <flusspferd/exception.hpp>
 
 using namespace flusspferd;
-
 namespace sdl {
-  FLUSSPFERD_LOADER_SIMPLE(sdl) {
-    local_root_scope scope;
+	object rect2object(SDL_Rect const &r) {
+    object rect(flusspferd::create_object());
+    rect.set_property("h", r.h);
+    rect.set_property("w", r.w);
+    rect.set_property("x", r.x);
+    rect.set_property("y", r.y);
+    return rect;
+  }
 
-    load_general(sdl);
-    load_video(sdl);
-    load_wm(sdl);
-    load_events(sdl);
-    load_mouse(sdl);
-    load_joystick(sdl);
+  SDL_Rect object2rect(object const &o) {
+    SDL_Rect ret;
+    if(!o.has_property("h")) {
+      throw flusspferd::exception("Rect: Missing property 'h'");
+    }
+    else if(!o.has_property("w")) {
+      throw flusspferd::exception("Rect: Missing property 'w'");
+    }
+    else if(!o.has_property("x")) {
+      throw flusspferd::exception("Rect: Missing property 'x'");
+    }
+    else if(!o.has_property("y")) {
+      throw flusspferd::exception("Rect: Missing property 'y'");
+    }
+    ret.h = o.get_property("h").get_int();
+    ret.w = o.get_property("w").get_int();
+    ret.x = o.get_property("x").get_int();
+    ret.y = o.get_property("y").get_int();
+    return ret;
   }
 }

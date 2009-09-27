@@ -22,39 +22,36 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
+#include "wm.hpp"
+#include "Surface.hpp"
 
-// TODO split this mess into several files (e.g. for Video, WM, Events and so on)
-
-#include "flusspferd/class.hpp"
-#include "flusspferd/create.hpp"
-#include "flusspferd/modules.hpp"
-#include "flusspferd/security.hpp"
-#include "flusspferd/class_description.hpp"
-
-#include <stdexcept>
-#include <cassert>
-#include <limits>
+#include <flusspferd/create.hpp>
 
 #include <SDL.h>
 
-#include "general.hpp"
-#include "video.hpp"
-#include "wm.hpp"
-#include "events.hpp"
-#include "mouse.hpp"
-#include "joystick.hpp"
-
 using namespace flusspferd;
-
 namespace sdl {
-  FLUSSPFERD_LOADER_SIMPLE(sdl) {
-    local_root_scope scope;
-
-    load_general(sdl);
-    load_video(sdl);
-    load_wm(sdl);
-    load_events(sdl);
-    load_mouse(sdl);
-    load_joystick(sdl);
+namespace {
+	int wm_toggle_fullscreen(Surface &surface) {
+    return SDL_WM_ToggleFullScreen(surface.surface);
   }
+
+  void wm_set_icon(Surface &surface) {
+    SDL_WM_SetIcon(surface.surface, 0x0);
+  }
+
+  int wm_grab_input(int mode) {
+    return (int)SDL_WM_GrabInput((SDL_GrabMode)mode);
+  }
+}
+	void load_wm(flusspferd::object &sdl) {
+		create_native_function(sdl, "WMSetCaption", &::SDL_WM_SetCaption);
+    create_native_function(sdl, "WMToggleFullScreen", &sdl::wm_toggle_fullscreen);
+    create_native_function(sdl, "WMSetIcon", &sdl::wm_set_icon);
+    create_native_function(sdl, "WMIconifyWindow", &::SDL_WM_IconifyWindow);
+    sdl.define_property("GRAB_QUERY", value((int)SDL_GRAB_QUERY));
+    sdl.define_property("GRAB_OFF", value((int)SDL_GRAB_OFF));
+    sdl.define_property("GRAB_ON", value((int)SDL_GRAB_ON));
+    create_native_function(sdl, "WMGrabInput", &sdl::wm_grab_input);
+	}
 }

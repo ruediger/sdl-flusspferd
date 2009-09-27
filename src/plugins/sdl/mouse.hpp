@@ -22,39 +22,13 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
+#ifndef FLUSSPFERD_PLUGINS_SDL_MOUSE_HPP
+#define FLUSSPFERD_PLUGINS_SDL_MOUSE_HPP
 
-// TODO split this mess into several files (e.g. for Video, WM, Events and so on)
-
-#include "flusspferd/class.hpp"
-#include "flusspferd/create.hpp"
-#include "flusspferd/modules.hpp"
-#include "flusspferd/security.hpp"
-#include "flusspferd/class_description.hpp"
-
-#include <stdexcept>
-#include <cassert>
-#include <limits>
-
-#include <SDL.h>
-
-#include "general.hpp"
-#include "video.hpp"
-#include "wm.hpp"
-#include "events.hpp"
-#include "mouse.hpp"
-#include "joystick.hpp"
-
-using namespace flusspferd;
+#include <flusspferd/object.hpp>
 
 namespace sdl {
-  FLUSSPFERD_LOADER_SIMPLE(sdl) {
-    local_root_scope scope;
-
-    load_general(sdl);
-    load_video(sdl);
-    load_wm(sdl);
-    load_events(sdl);
-    load_mouse(sdl);
-    load_joystick(sdl);
-  }
+	void load_mouse(flusspferd::object &sdl);
 }
+
+#endif
