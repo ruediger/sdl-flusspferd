@@ -1212,7 +1212,29 @@ namespace sdl {
   Joystick:
     COMPLETE
 
-  and everything else
+  Audio:
+    SDL_AudioSpec - Audio Specification Structure
+    SDL_OpenAudio - Opens the audio device with the desired parameters.
+    SDL_PauseAudio - Pauses and unpauses the audio callback processing
+    SDL_GetAudioStatus - Gets the current audio state
+    SDL_LoadWAV - Loads a WAVE file
+    SDL_FreeWAV - Frees previously opened WAV data
+    SDL_AudioCVT - Audio Conversion Structure
+    SDL_BuildAudioCVT - Initializes a SDL_AudioCVT - structure for conversion
+    SDL_ConvertAudio - Converts audio data to a desired audio format.
+    SDL_MixAudio - Mixes audio data
+    SDL_LockAudio - Locks out the callback function
+    SDL_UnlockAudio - Unlocks the callback function
+    SDL_CloseAudio - Shuts down audio processing and closes the audio device. 
+
+  CD-ROM:
+    I won't wrap this. I don't think anybody uses it (except for old Loki games).
+
+  Multithreading:
+    I won't wrap this. This should be provided by a different Plugin.
+
+  Time:
+    This should probably also be provided by a different Plugin (like os).
    */
 
   FLUSSPFERD_LOADER_SIMPLE(sdl) {
