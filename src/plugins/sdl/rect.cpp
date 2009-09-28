@@ -40,8 +40,18 @@ namespace sdl {
     return rect;
   }
 
+namespace {
+	int get_int(value const &v) {
+		if(v.is_int())
+			return v.get_int();
+		else if(v.is_double())
+			return v.get_double();
+		else
+			return v.to_number();
+	}
+}
+
   SDL_Rect object2rect(object const &o) {
-    SDL_Rect ret;
     if(!o.has_property("h")) {
       throw flusspferd::exception("Rect: Missing property 'h'");
     }
@@ -54,10 +64,11 @@ namespace sdl {
     else if(!o.has_property("y")) {
       throw flusspferd::exception("Rect: Missing property 'y'");
     }
-    ret.h = o.get_property("h").get_int();
-    ret.w = o.get_property("w").get_int();
-    ret.x = o.get_property("x").get_int();
-    ret.y = o.get_property("y").get_int();
+    SDL_Rect ret;
+    ret.h = get_int(o.get_property("h"));
+    ret.w = get_int(o.get_property("w"));
+    ret.x = get_int(o.get_property("x"));
+    ret.y = get_int(o.get_property("y"));
     return ret;
   }
 }
