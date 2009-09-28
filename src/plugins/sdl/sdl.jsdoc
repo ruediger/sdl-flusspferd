@@ -21,7 +21,7 @@
  * {{{
  * const SDL = require('sdl');
  * SDL.init(SDL.INIT_VIDEO);
- * var surface = SDL.setVideoMode(640, 480, 16, SDL.SDL_SWSURFACE);
+ * var surface = SDL.setVideoMode(640, 480, 16, SDL.SWSURFACE);
  * SDL.WMSetCaption("Flusspferd", "(Flusspferd)");
  * var image = SDL.loadBMP("/tmp/flusspferd-logo.bmp");
  * SDL.blitSurface(image, surface);
