@@ -401,7 +401,7 @@ namespace {
         throw flusspferd::exception("blitSurface: expected Surface as first parameter");
       }
       SDL_Surface *src = flusspferd::get_native<Surface>(x.arg[0].get_object()).surface;
-      if(!flusspferd::is_native<Surface>(x.arg[1].get_object())) {
+      if(!x.arg[1].is_object()) {
         throw flusspferd::exception("blitSurface: expected Rect as second parameter");
       }
       SDL_Rect srcrect = object2rect(x.arg[1].get_object());
@@ -409,7 +409,7 @@ namespace {
         throw flusspferd::exception("blitSurface: expected Surface as third parameter");
       }
       SDL_Surface *dest = flusspferd::get_native<Surface>(x.arg[2].get_object()).surface;
-      if(!flusspferd::is_native<Surface>(x.arg[3].get_object())) {
+      if(!x.arg[3].is_object()) {
         throw flusspferd::exception("blitSurface: expected Rect as fourth parameter");
       }
       SDL_Rect destrect = object2rect(x.arg[3].get_object());
