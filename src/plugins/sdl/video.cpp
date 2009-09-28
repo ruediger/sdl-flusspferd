@@ -538,7 +538,7 @@ namespace {
     boost::function< void(call_context &)> blit_surface_ = &sdl::blit_surface;
     create_native_function(sdl, "blitSurface", blit_surface_);
     create_native_function(sdl, "setColors", &sdl::set_colors);
-    //create_native_function(sdl, "createRGBSurface", &sdl::create_RGB_surface);
+    create_native_function(sdl, "createRGBSurface", &sdl::create_RGB_surface);
     sdl.define_property("SRCALPHA", value(SDL_SRCALPHA));
     sdl.define_property("RLEACCEL", value(SDL_RLEACCEL));
     create_native_function(sdl, "setAlpha", &sdl::set_alpha);
