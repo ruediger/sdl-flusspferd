@@ -1,0 +1,8 @@
+Flusspferd SDL
+==============
+
+SDL module for Flusspferd (Javascript).
+
+See http://flusspferd.org/ and http://www.libsdl.org/
+
+Flusspferd git master required. Current version won't work with Flusspferd 0.8 or older!
