@@ -24,7 +24,7 @@
 # THE SOFTWARE.
 #
 
-project(Flusspferd)
+project(Flusspferd_SDL)
 
 cmake_minimum_required(VERSION 2.6)
 
@@ -58,38 +58,9 @@ set(INSTALL_MODULES_PATH ${CMAKE_INSTALL_PREFIX}/lib/flusspferd/modules)
 set(INSTALL_HEADERS_PATH ${CMAKE_INSTALL_PREFIX}/include)
 set(INSTALL_ETC_PATH ${CMAKE_INSTALL_PREFIX}/etc)
 
-if(NOT WIN32 AND NOT FLUSSPFERD_VERSION)
-    execute_process(
-        COMMAND "${Flusspferd_SOURCE_DIR}/flusspferd-version.sh"
-        WORKING_DIRECTORY "${Flusspferd_SOURCE_DIR}"
-        OUTPUT_VARIABLE FLUSSPFERD_VERSION
-        OUTPUT_STRIP_TRAILING_WHITESPACE)
-endif()
-
-if(NOT FLUSSPFERD_VERSION)
-    set(FLUSSPFERD_VERSION unknown)
-endif()
-
-add_definitions("-DFLUSSPFERD_VERSION=\"${FLUSSPFERD_VERSION}\"")
 add_definitions("-DINSTALL_PREFIX=\"${CMAKE_INSTALL_PREFIX}\"")
 
-message(STATUS "Flusspferd Version " ${FLUSSPFERD_VERSION})
-
-option(RELOCATABLE "Whether the binary should be relocatable" ON)
-
-if(RELOCATABLE)
-    add_definitions("-DFLUSSPFERD_RELOCATABLE")
-    # TODO: should should probably use some relative_to funciton to be smarter
-    # That or being settable from a cmake option
-    add_definitions("-DFLUSSPFERD_ETC_PATH=\"../etc/flusspferd\"")
-    set(INSTALL_RELATIVE_MODULES_PATH "../lib/flusspferd/modules")
-    set(INSTALL_RELATIVE_LIBDATA_PATH "../lib/flusspferd")
-else()
-    add_definitions("-DFLUSSPFERD_ETC_PATH=\"${INSTALL_ETC_PATH}\"")
-endif()
-
 set(CMAKE_SHARED_MODULE_SUFFIX ${CMAKE_SHARED_LIBRARY_SUFFIX})
-add_definitions("-DFLUSSPFERD_MODULE_SUFFIX=\"${CMAKE_SHARED_MODULE_SUFFIX}\"")
 
 if(CMAKE_BUILD_TYPE STREQUAL "Debug")
     add_definitions("-DDEBUG")
@@ -104,17 +75,6 @@ include(CheckCXXSourceRuns)
 include(FindPkgConfig)
 
 ## Compiler options #########################################################
-
-if(WIN32)
-    set(_ENABLE_TESTS_DEFAULT OFF)
-else()
-    set(_ENABLE_TESTS_DEFAULT ON)
-endif()
-
-option(
-    ENABLE_TESTS
-    "Compile the test suite"
-    ${_ENABLE_TESTS_DEFAULT})
 
 if(CMAKE_COMPILER_IS_GNUCXX)
     # MinGW doesn't set this by default
@@ -162,81 +122,6 @@ elseif(MSVC)
     set(WININCLUDES ${CMAKE_SOURCE_DIR}/${WINLIBS})
 endif()
 
-include_directories(${Flusspferd_SOURCE_DIR}/include)
-
-## Plugin options ###########################################################
-
-option(
-    FORCE_PLUGINS
-    "Fail configuration if some enabled plugins could not be configured"
-    OFF)
-option(PLUGIN_SQLITE3 "Build SQLite3 plugin" ON)
-option(PLUGIN_GMP "Build GMP plugin" ON)
-option(PLUGIN_SDL "Build SDL plugin" ON)
-
-set(
-    LINE_EDITOR
-    "libedit"
-    CACHE
-    STRING
-    "Select the line editor (none, libedit, readline)"
-)
-option(
-    FORCE_LINE_EDITOR
-    "Fail configuration if the specified line editor is not available"
-    OFF)
-option(CREATE_DOCUMENTATION "Create Documentation for Flusspferd" OFF)
-
-if(NOT LINE_EDITOR STREQUAL "none" AND
-   NOT LINE_EDITOR STREQUAL "libedit" AND
-   NOT LINE_EDITOR STREQUAL "readline")
- message(FATAL_ERROR "Invalid option given for LINE_EDTIOR: ${LINE_EDITOR}")
-endif()
-
-## /proc/self/exe ###########################################################
-
-if(RELOCATABLE)
-    add_definitions(-DFLUSSPFERD_RELOCATABLE)
-    include(FindSelfExe)
-    IF(APPLE)
-      SET(CMAKE_SHARED_LIBRARY_CREATE_CXX_FLAGS
-          "${CMAKE_SHARED_LIBRARY_CREATE_C_FLAGS} -Wl,-x -flat_namespace")
-      SET(CMAKE_SHARED_MODULE_CREATE_CXX_FLAGS
-          "${CMAKE_SHARED_MODULE_CREATE_C_FLAGS} -Wl,-x -flat_namespace")
-    ENDIF(APPLE)
-
-endif()
-
-## POSIX ####################################################################
-
-check_cxx_source_runs(
-    "#include <unistd.h>
-     #include <cstdlib>
-     int main()
-     {
-       return _POSIX_VERSION >= 199506
-              ? EXIT_SUCCESS
-          : EXIT_FAILURE;
-     }"
-    FLUSSPFERD_HAVE_POSIX)
-
-
-## libdl ####################################################################
-
-if(FLUSSPFERD_HAVE_POSIX)
-    find_package(DL REQUIRED)
-    add_definitions(-DFLUSSPFERD_HAVE_POSIX)
-    include_directories(${DL_INCLUDE_DIR})
-endif()
-
-## iconv ####################################################################
-
-find_package(Iconv REQUIRED)
-
-if(ICONV_ACCEPTS_NONCONST_INPUT)
-    add_definitions(-DICONV_ACCEPTS_NONCONST_INPUT)
-endif()
-
 ## Boost ####################################################################
 
 set(Boost_USE_MULTITHREADED ON)
@@ -247,15 +132,7 @@ endif()
 
 set(Boost_FIND_REQUIRED TRUE)
 
-set(FLUSSPFERD_BOOST_LIBRARIES thread filesystem system)
-
-if(ENABLE_TESTS)
-    set(FLUSSPFERD_BOOST_LIBRARIES
-        unit_test_framework ${FLUSSPFERD_BOOST_LIBRARIES})
-endif()
-
-find_package(Boost 1.40.0 COMPONENTS
-    ${FLUSSPFERD_BOOST_LIBRARIES})
+find_package(Boost 1.40.0)
 
 if(Boost_INCLUDE_DIR)
     include_directories(${Boost_INCLUDE_DIR})
@@ -263,355 +140,73 @@ else()
     message(FATAL_ERROR "Boost headers not found. You will have to specify them in your build environment or you can use -DBOOST_ROOT or -DBOOST_INCLUDE_DIR to tell cmake where your boost installation is.")
 endif()
 
-if(Boost_LIBRARY_DIRS)
-    link_directories(${Boost_LIBRARY_DIRS})
-else()
-    message(FATAL_ERROR "Boost libraries not found. Please set -DBOOST_ROOT or -DBOOST_LIBRARY_DIR manually.")
-endif()
-
 if(NOT Boost_FOUND)
-    message(STATUS "Boost not found!")
+    message(FATAL_ERROR "Boost not found!")
 endif()
 
 set(BOOST_PARAMETER_MAX_ARITY "-DBOOST_PARAMETER_MAX_ARITY=10")
 add_definitions(${BOOST_PARAMETER_MAX_ARITY})
-set(FLUSSPFERD_EXTERNAL_CFLAGS "${FLUSSPFERD_EXTERNAL_CFLAGS} ${BOOST_PARAMETER_MAX_ARITY}")
-
-## Spidermonkey #############################################################
-
-set(Spidermonkey_REQUIRED TRUE)
-find_package(Spidermonkey)
-
-if(NOT SPIDERMONKEY_FOUND)
-    message(FATAL_ERROR "Spidermonkey not found")
-endif()
-
-if(SPIDERMONKEY_FOUND)
-    if (NOT SPIDERMONKEY_UTF8)
-        message(FATAL_ERROR "Spidermonkey UTF8 support required but not found")
-    endif()
-
-    if (NOT SPIDERMONKEY_JS_CONFIG_HEADER_PATH)
-        message(FATAL_ERROR "Spidermonkey with config.h required but not found (Version 1.8.1+ required)")
-    endif()
-endif()
-
-include_directories(${SPIDERMONKEY_INCLUDE_DIR})
-add_definitions(${SPIDERMONKEY_DEFINITIONS})
-
-## libedit ##################################################################
-
-if(LINE_EDITOR STREQUAL "libedit")
-  find_package(Libedit)
-
-  if(LIBEDIT_FOUND)
-    add_definitions(-DHAVE_EDITLINE)
-    include_directories(${LIBEDIT_INCLUDE_DIR})
-  endif()
-
-  if(FORCE_LINE_EDITOR AND NOT LIBEDIT_FOUND)
-        message(SEND_ERROR "libedit required but it was not found")
-  endif()
-endif()
-
-## GNU/readline #############################################################
-
-if(LINE_EDITOR STREQUAL "readline")
-  message("WARNING: GNU/readline is GPL licensed.")
-
-  find_package(Readline)
-
-  if(READLINE_FOUND)
-    add_definitions(-DHAVE_READLINE)
-    include_directories(${READLINE_INCLUDE_DIR})
-  endif()
-
-  if(FORCE_LINE_EDITOR AND NOT READLINE_FOUND)
-        message(SEND_ERROR "readline required but it was not found")
-  endif()
-endif()
-
-## sqlite3 ##################################################################
-
-if(PLUGIN_SQLITE3)
-    if (WIN32)
-        find_library(
-            SQLITE3_LIBRARIES
-            NAMES sqlite3
-            PATHS "${SQLITE3_LIBRARY_DIRS}")
-        IF(SQLITE3_LIBRARIES)
-            set(SQLITE3_FOUND ON)
-            link_directories(${SQLITE3_LIBRARY_DIRS})
-            include_directories(${SQLITE3_INCLUDE_DIRS})
-        ENDIF()
-    else()
-        pkg_check_modules(SQLITE3 sqlite3>=3.4.0)
-        include_directories(${SQLITE3_INCLUDE_DIRS})
-        link_directories(${SQLITE3_LIBRARY_DIRS})
-    endif()
-
-    if(FORCE_PLUGINS AND NOT SQLITE3_FOUND)
-        message(SEND_ERROR "SQLite3 plugin required but SQLite3 not found")
-    endif()
-
-    if (SQLITE3_STATIC)
-        add_library(sqlite3_static STATIC IMPORTED)
-        set_property(TARGET sqlite3_static PROPERTY IMPORTED_LOCATION SQLITE3_STATIC)
-        set(SQLITE3_LIBRARIES ${SQLITE3_STATIC})
-    endif()
-endif()
-
-## GMP ######################################################################
-
-if(PLUGIN_GMP)
-    find_package(GMP)
-    find_package(GMPXX)
-
-    if(FORCE_PLUGINS)
-        if(NOT GMP_FOUND OR NOT GMPXX_FOUND)
-            message(SEND_ERROR "GMP plugin required but GMP/GMPXX not found")
-        endif()
-    endif()
-endif()
 
 ## SDL ######################################################################
 
-if(PLUGIN_SDL)
-  find_package(SDL)
+find_package(SDL)
 
-  if(FORCE_PLUGINS AND NOT SDL_FOUND)
-      message(SEND_ERROR "SDL plugin required but SDL not found")
-  endif()
+if(NOT SDL_FOUND)
+  message(FATAL_ERROR "SDL not found")
 endif()
 
-## Library ##################################################################
+set(SDL_LIBRARIES ${SDL_LIBRARY})
+include_directories(${SDL_INCLUDE_DIR})
 
-file(
-    GLOB
-    flusspferd_library_sources
-    ${Flusspferd_SOURCE_DIR}/src/core/*.cpp
-    ${Flusspferd_SOURCE_DIR}/src/spidermonkey/*.cpp
-    ${Flusspferd_SOURCE_DIR}/src/io/*.cpp
-    ${Flusspferd_SOURCE_DIR}/include/*.hpp
-    ${Flusspferd_SOURCE_DIR}/include/flusspferd/*.hpp
-    ${Flusspferd_SOURCE_DIR}/include/flusspferd/io/*.hpp
-    ${Flusspferd_SOURCE_DIR}/include/flusspferd/detail/*.hpp
-    ${Flusspferd_SOURCE_DIR}/include/flusspferd/spidermonkey/*.hpp)
+## Flusspferd ##############################################################
 
-if(MSVC)
-    # Build static lib for MSVC
-    set(FLUSSPFERD_LIBRARY_TYPE STATIC)
+find_package(Flusspferd)
+
+if(NOT FLUSSPFERD_FOUND)
+  message(FATAL_ERROR "Flusspferd not found")
+endif()
+
+include_directories(${Flusspferd_INCLUDE_DIR})
+
+## Build ###################################################################
+
+file(GLOB
+  SDL_sources
+  ${Flusspferd_SDL_SOURCE_DIR}/src/*.cpp
+  ${Flusspferd_SDL_SOURCE_DIR}/src/*.hpp)
+
+# OSX doesn't work properly with this as MODULE (something about --flat-namespace)
+if (APPLE)
+  add_library(SDL_PLUGIN SHARED ${SDL_sources})
 else()
-    set(FLUSSPFERD_LIBRARY_TYPE SHARED)
+  add_library(SDL_PLUGIN MODULE ${SDL_sources})
 endif()
-
-add_library(
-    flusspferd
-    ${FLUSSPFERD_LIBRARY_TYPE}
-    ${flusspferd_library_sources})
-
-set(
-    flusspferd_LIBS
-    ${DL_LIBRARIES}
-    ${ICONV_LIBRARIES}
-    ${SPIDERMONKEY_LIBRARIES}
-    ${Boost_THREAD_LIBRARY}
-    ${Boost_FILESYSTEM_LIBRARY}
-    ${Boost_SYSTEM_LIBRARY})
-
-target_link_libraries(flusspferd ${flusspferd_LIBS})
-
-# Libraries linking against the flusspferd DSO dont need to link to all the above.
-set_property(TARGET flusspferd PROPERTY LINK_INTERFACE_LIBRARIES "")
-
-
-if(WIN32)
-    # .dll goes in bin/
-    install(TARGETS flusspferd RUNTIME DESTINATION ${INSTALL_EXECUTABLES_PATH})
-    # .lib goes in lib/
-    install(TARGETS flusspferd ARCHIVE DESTINATION ${INSTALL_LIBRARIES_PATH})
-else()
-    install(TARGETS flusspferd LIBRARY DESTINATION ${INSTALL_LIBRARIES_PATH})
-endif()
-
-## Library - coverage variant ###############################################
-
-if(ENABLE_TESTS)
-
-# The coverage library has been removed for now. It only makes it less likely
-# for people to run the tests, which is a bigger problem than getting coverage
-# numbers, which don't work for JS anyways.
-
-#    file(
-#        GLOB
-#        flusspferd_coverage_extra_sources
-#        ${Flusspferd_SOURCE_DIR}/src/io/*.cpp
-#        ${Flusspferd_SOURCE_DIR}/src/xml/*.cpp)
-#
-#    add_library(
-#        flusspferd-coverage
-#        SHARED
-#        ${flusspferd_library_sources} ${flusspferd_coverage_extra_sources})
-#
-#    target_link_libraries(flusspferd-coverage ${flusspferd_LIBS})
-#
-#    set(COV_FLAGS "-fprofile-arcs -ftest-coverage")
-#
-#    set_property(
-#        TARGET flusspferd-coverage
-#        PROPERTY COMPILE_FLAGS
-#        "${COV_FLAGS} -DFLUSSPFERD_COVERAGE")
-#
-#    set_property(
-#        TARGET flusspferd-coverage
-#        PROPERTY LINK_FLAGS
-#        ${COV_FLAGS})
-
-endif()
-
-## Programs #################################################################
-
-add_executable(
-    flusspferd-shell
-    src/programs/flusspferd.cpp)
 
 set_property(
-    TARGET flusspferd-shell
-    PROPERTY OUTPUT_NAME
-    flusspferd)
+  TARGET SDL_PLUGIN
+  PROPERTY OUTPUT_NAME
+  sdl)
 
-set(flusspferd_shell_LIBS flusspferd ${Boost_SYSTEM_LIBRARY})
+set_property(
+  TARGET SDL_PLUGIN
+  PROPERTY DEFINITIONS
+  ${SDL_DEFINITIONS})
 
-if(NOT LINE_EDITOR STREQUAL "readline")
-  list(APPEND flusspferd_shell_LIBS ${LIBEDIT_LIBRARIES})
-else()
-  list(APPEND flusspferd_shell_LIBS ${READLINE_LIBRARIES})
-endif()
+IF (WIN32)
+  # Remove the 'lib' prefix from plugin modules on win32
+  set_property(
+    TARGET SDL_PLUGIN
+    PROPERTY PREFIX "")
+ENDIF()
 
 target_link_libraries(
-    flusspferd-shell
-    ${flusspferd_shell_LIBS})
+  SDL_PLUGIN
+  ${Flusspferd_LIBRARY}
+  ${SDL_LIBRARIES})
 
 install(TARGETS
-    flusspferd-shell
-    RUNTIME DESTINATION ${INSTALL_EXECUTABLES_PATH})
-
-## Tests ###################################################################
-
-if(ENABLE_TESTS)
-
-    file(GLOB
-        TESTS
-        test/test_*.cpp
-        #test/*.hpp
-        )
-
-    foreach(TEST_SOURCE ${TESTS})
-        string(REGEX MATCH "test_[a-zA-Z0-9_]*" TEST_OUTPUT ${TEST_SOURCE})
-        string(REGEX REPLACE "^test_" "" TEST_NAME TEST_OUTPUT)
-        add_executable(${TEST_OUTPUT} ${TEST_SOURCE})
-        set_property(
-            TARGET ${TEST_OUTPUT}
-            PROPERTY COMPILE_FLAGS
-            "-DBOOST_TEST_DYN_LINK -DBOOST_TEST_MODULE=${TEST_NAME}")
-        target_link_libraries(
-            ${TEST_OUTPUT}
-            ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY}
-            flusspferd)
-    endforeach()
-
-endif()
-
-## Plugins #################################################################
-
-if(PLUGIN_SQLITE3 AND SQLITE3_FOUND)
-    set(PLUGINS ${PLUGINS} sqlite3)
-    set(sqlite3_DEFINITIONS ${SQLITE3_DEFINITIONS})
-    set(sqlite3_LIBRARIES ${SQLITE3_LIBRARIES})
-endif()
-
-if(PLUGIN_GMP AND GMP_FOUND AND GMPXX_FOUND)
-    set(PLUGINS ${PLUGINS} gmp)
-    set(gmp_LIBRARIES ${GMPXX_LIBRARY} ${GMP_LIBRARY})
-    include_directories(${GMP_INCLUDE_DIR})
-endif()
-
-if(PLUGIN_SDL AND SDL_FOUND)
-  set(PLUGINS ${PLUGINS} sdl)
-  set(sdl_LIBRARIES ${SDL_LIBRARY})
-  include_directories(${SDL_INCLUDE_DIR})
-endif()
-
-foreach(PLUGIN ${PLUGINS})
-    message(STATUS "Plugin: ${PLUGIN} (will be built)")
-
-    file(GLOB
-        ${PLUGIN}_sources
-        ${Flusspferd_SOURCE_DIR}/src/plugins/${PLUGIN}/*.cpp
-        ${Flusspferd_SOURCE_DIR}/src/plugins/${PLUGIN}/*.hpp)
-
-    # OSX doesn't work properly with this as MODULE (something about --flat-namespace)
-    if (APPLE)
-        add_library(${PLUGIN}_PLUGIN SHARED ${${PLUGIN}_sources})
-    else()
-        add_library(${PLUGIN}_PLUGIN MODULE ${${PLUGIN}_sources})
-    endif()
-
-    set_property(
-        TARGET ${PLUGIN}_PLUGIN
-        PROPERTY OUTPUT_NAME
-        ${PLUGIN})
-
-    set_property(
-        TARGET ${PLUGIN}_PLUGIN
-        PROPERTY LIBRARY_OUTPUT_DIRECTORY
-        ${Flusspferd_BINARY_DIR}/modules)
-
-    set_property(
-        TARGET ${PLUGIN}_PLUGIN
-        PROPERTY DEFINITIONS
-        ${${PLUGIN}_DEFINITIONS})
-
-    IF (WIN32)
-        # Remove the 'lib' prefix from plugin modules on win32
-        set_property(
-            TARGET ${PLUGIN}_PLUGIN
-            PROPERTY PREFIX "")
-    ENDIF()
-
-    target_link_libraries(
-        ${PLUGIN}_PLUGIN
-        flusspferd
-        ${${PLUGIN}_LIBRARIES})
-
-    install(TARGETS
-        ${PLUGIN}_PLUGIN
-        LIBRARY DESTINATION ${INSTALL_MODULES_PATH})
-
-    file(GLOB
-        ${PLUGIN}_JS_FILES
-        ${Flusspferd_SOURCE_DIR}/src/plugins/${PLUGIN}/${PLUGIN}.js)
-
-    if(${PLUGIN}_JS_FILES)
-        install(FILES
-            ${${PLUGIN}_JS_FILES}
-            DESTINATION ${INSTALL_MODULES_PATH})
-    endif()
-
-endforeach()
-
-set(JS_PLUGINS
-    util util/array util/function util/range util/load test test/equiv http/headers)
-
-foreach(JS_PLUGIN ${JS_PLUGINS})
-
-    string(REGEX MATCH ".*/" ${JS_PLUGIN}_DIR ${JS_PLUGIN})
-
-    install(FILES
-        src/js/${JS_PLUGIN}.js
-        DESTINATION ${INSTALL_MODULES_PATH}/${${JS_PLUGIN}_DIR})
-
-endforeach()
+  SDL_PLUGIN
+  LIBRARY DESTINATION ${INSTALL_MODULES_PATH})
 
 ## Headers ##################################################################
 
@@ -622,115 +217,5 @@ foreach(HEADER ${HEADERFILES})
     PROPERTIES
     HEADER_FILE_ONLY TRUE)
 endforeach()
-
-install(
-    DIRECTORY include/
-    DESTINATION ${INSTALL_HEADERS_PATH}
-    FILES_MATCHING PATTERN "*.hpp")
-
-## Prelude ##################################################################
-
-install(
-    FILES src/js/prelude.js
-    DESTINATION ${INSTALL_LIBDATA_PATH})
-
-## Documentation ############################################################
-
-if(NOT WIN32)
-  if(CREATE_DOCUMENTATION)
-    message(STATUS "WILL create and install documentation")
-    add_custom_target(DOCS ALL
-      COMMAND ${Flusspferd_SOURCE_DIR}/util/docs.sh
-      WORKING_DIRECTORY ${Flusspferd_SOURCE_DIR})
-    install(
-      DIRECTORY ${Flusspferd_BINARY_DIR}/html/
-      DESTINATION ${CMAKE_INSTALL_PREFIX}/share/doc/flusspferd/)
-  endif()
-endif()
-
-## Configured files##########################################################
-
-configure_file(
-    ${Flusspferd_SOURCE_DIR}/src/js/jsrepl.js.in
-    ${Flusspferd_BINARY_DIR}/js/jsrepl.js)
-
-install(
-    FILES ${Flusspferd_BINARY_DIR}/js/jsrepl.js
-    DESTINATION ${INSTALL_ETC_PATH}/flusspferd)
-
-if(NOT MSVC)
-    set(FLUSSPFERD_EXTERNAL_CFLAGS
-        "${FLUSSPFERD_EXTERNAL_CFLAGS} -I${Boost_INCLUDE_DIR} -I${SPIDERMONKEY_INCLUDE_DIR}")
-
-    foreach(_FLAG @SPIDERMONKEY_DEFINITIONS@)
-        set(FLUSSPFERD_EXTERNAL_CFLAGS "${FLUSSPFERD_EXTERNAL_CFLAGS} ${_FLAG}")
-    endforeach()
-
-    configure_file(
-        ${Flusspferd_SOURCE_DIR}/flusspferd.pc.in
-        ${Flusspferd_BINARY_DIR}/flusspferd.pc
-        @ONLY)
-
-    install(
-        FILES ${Flusspferd_BINARY_DIR}/flusspferd.pc
-        DESTINATION ${CMAKE_INSTALL_PREFIX}/lib/pkgconfig)
-endif()
-
-if (NOT WIN32)
-    add_custom_command(
-      OUTPUT flusspferd.1
-      COMMAND ${Flusspferd_BINARY_DIR}/bin/flusspferd -c /dev/null --hidden-man > ${Flusspferd_BINARY_DIR}/flusspferd.1.options
-      COMMAND ${Flusspferd_BINARY_DIR}/bin/flusspferd -c /dev/null -- ${Flusspferd_SOURCE_DIR}/util/replace-var.js --file-var OPTIONS=${Flusspferd_BINARY_DIR}/flusspferd.1.options ${Flusspferd_SOURCE_DIR}/help/flusspferd.1.in > ${Flusspferd_BINARY_DIR}/flusspferd.1
-      DEPENDS ${Flusspferd_SOURCE_DIR}/help/flusspferd.1.in
-      DEPENDS flusspferd-shell
-      COMMENT "Generating manpage")
-    add_custom_command(
-      OUTPUT flusspferd.1.gz
-      COMMAND gzip -9 -c ${Flusspferd_BINARY_DIR}/flusspferd.1 > ${Flusspferd_BINARY_DIR}/flusspferd.1.gz
-      DEPENDS flusspferd.1
-      COMMENT "Compressing manpage")
-    add_custom_target(
-      MANPAGE ALL
-      DEPENDS flusspferd.1.gz)
-    install(
-        FILES ${Flusspferd_BINARY_DIR}/flusspferd.1.gz
-        DESTINATION ${CMAKE_INSTALL_PREFIX}/share/man/man1)
-
-    add_custom_command(
-      OUTPUT bash_completion.sh
-      COMMAND ${Flusspferd_BINARY_DIR}/bin/flusspferd -c /dev/null --hidden-bash > ${Flusspferd_BINARY_DIR}/bash_completion.impl
-      COMMAND ${Flusspferd_BINARY_DIR}/bin/flusspferd -c /dev/null -- ${Flusspferd_SOURCE_DIR}/util/replace-var.js --file-var IMPL=${Flusspferd_BINARY_DIR}/bash_completion.impl ${Flusspferd_SOURCE_DIR}/misc/bash_completion.sh.in > ${Flusspferd_BINARY_DIR}/bash_completion.sh
-      DEPENDS flusspferd-shell
-      COMMENT "Generating Bash Completion Script")
-    add_custom_target(
-      BASH_COMPLETION ALL
-      DEPENDS bash_completion.sh)
-    install(
-      FILES ${Flusspferd_BINARY_DIR}/bash_completion.sh
-      DESTINATION ${CMAKE_INSTALL_PREFIX}/etc/bash_completion.d
-      RENAME flusspferd)
-
-    find_program(EMACS NAMES emacs)
-    if(NOT EMACS STREQUAL "EMACS-NOTFOUND")
-      message(STATUS "WILL install Emacs mode")
-      add_custom_command(
-        OUTPUT flusspferd.elc
-        COMMAND emacs -batch -q -f batch-byte-compile ${Flusspferd_SOURCE_DIR}/misc/emacs/flusspferd.el
-        COMMAND mv ${Flusspferd_SOURCE_DIR}/misc/emacs/flusspferd.elc ${Flusspferd_BINARY_DIR}/
-        DEPENDS ${Flusspferd_SOURCE_DIR}/misc/emacs/flusspferd.el
-        COMMENT "Byte compiling Emacs code")
-      add_custom_target(
-        EMACS_MODE ALL
-        DEPENDS flusspferd.elc)
-      install(
-        FILES ${Flusspferd_BINARY_DIR}/flusspferd.elc
-        DESTINATION ${CMAKE_INSTALL_PREFIX}/share/emacs/site-lisp)
-    endif()
-
-    # install emacs mode source even if emacs is not found
-    install(
-      FILES ${Flusspferd_SOURCE_DIR}/misc/emacs/flusspferd.el
-      DESTINATION ${CMAKE_INSTALL_PREFIX}/share/emacs/site-lisp)
-endif()
 
 message(STATUS "Configuration SUCCESSFUL. No fatal errors.")

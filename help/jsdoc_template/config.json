@@ -1,6 +1,0 @@
-{
-  d: 'build/html/js',
-  t: 'help/jsdoc_template',
-  r: true,
-  x: 'js,jsdoc',
-}
