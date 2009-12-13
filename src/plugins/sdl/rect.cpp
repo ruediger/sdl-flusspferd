@@ -27,12 +27,13 @@ THE SOFTWARE.
 #include "rect.hpp"
 
 #include <flusspferd/create.hpp>
+#include <flusspferd/create/object.hpp>
 #include <flusspferd/exception.hpp>
 
 using namespace flusspferd;
 namespace sdl {
-	object rect2object(SDL_Rect const &r) {
-    object rect(flusspferd::create_object());
+object rect2object(SDL_Rect const &r) {
+    object rect(create<object>());
     rect.set_property("h", r.h);
     rect.set_property("w", r.w);
     rect.set_property("x", r.x);

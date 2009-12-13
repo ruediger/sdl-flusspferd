@@ -26,6 +26,9 @@ THE SOFTWARE.
 #include "Surface.hpp"
 
 #include <flusspferd/create.hpp>
+#include <flusspferd/create_on.hpp>
+#include <flusspferd/create/object.hpp>
+#include <flusspferd/create/function.hpp>
 
 #include <SDL.h>
 
@@ -63,17 +66,17 @@ namespace sdl {
     }
 
     static Joystick &create(SDL_Joystick *j) {
-      return flusspferd::create_native_object<Joystick>(object(), j);
+      return flusspferd::create<Joystick>(bf::make_vector(j));
     }
   };
 
-	Joystick &wrap(SDL_Joystick *j) {
-		return Joystick::create(j);
-	}
+  Joystick &wrap(SDL_Joystick *j) {
+    return Joystick::create(j);
+  }
 
-	SDL_Joystick *unwrap(Joystick &j) {
-		return j.data();
-	}
+  SDL_Joystick *unwrap(Joystick &j) {
+    return j.data();
+  }
 
 namespace {
   Joystick &joystick_open(int index) {
@@ -122,29 +125,30 @@ namespace {
       return object();
     }
     else {
-      object ret(create_object());
+      object ret(create<object>());
       ret.set_property("dx", dx);
       ret.set_property("dy", dy);
       return ret;
     }
   }
 }
-	void load_joystick(object &sdl) {
-		create_native_function(sdl, "numJoysticks", &::SDL_NumJoysticks);
-    create_native_function(sdl, "joystickName", &::SDL_JoystickName);
-    create_native_function(sdl, "joystickOpened", &::SDL_JoystickOpened);
-    create_native_function(sdl, "joystickUpdate", &::SDL_JoystickUpdate);
+  void load_joystick(object &sdl) {
+    create_on(sdl)
+      .create<function>("numJoysticks", &::SDL_NumJoysticks)
+      .create<function>("joystickName", &::SDL_JoystickName)
+      .create<function>("joystickOpened", &::SDL_JoystickOpened)
+      .create<function>("joystickUpdate", &::SDL_JoystickUpdate)
+      .create<function>("joystickOpen", &sdl::joystick_open)
+      .create<function>("joystickClose", &sdl::joystick_close)
+      .create<function>("joystickIndex", &sdl::joystick_index)
+      .create<function>("joystickNumAxes", &sdl::joystick_num_axes)
+      .create<function>("joystickNumBalls", &sdl::joystick_num_balls)
+      .create<function>("joystickNumHats", &sdl::joystick_num_hats)
+      .create<function>("joystickNumButtons", &sdl::joystick_num_buttons)
+      .create<function>("joystickGetAxis", &sdl::joystick_get_axis)
+      .create<function>("joystickGetHat", &sdl::joystick_get_hat)
+      .create<function>("joystickGetButton", &sdl::joystick_get_button)
+      .create<function>("joystickGetBall", &sdl::joystick_get_ball);
     load_class<sdl::Joystick>(sdl);
-    create_native_function(sdl, "joystickOpen", &sdl::joystick_open);
-    create_native_function(sdl, "joystickClose", &sdl::joystick_close);
-    create_native_function(sdl, "joystickIndex", &sdl::joystick_index);
-    create_native_function(sdl, "joystickNumAxes", &sdl::joystick_num_axes);
-    create_native_function(sdl, "joystickNumBalls", &sdl::joystick_num_balls);
-    create_native_function(sdl, "joystickNumHats", &sdl::joystick_num_hats);
-    create_native_function(sdl, "joystickNumButtons", &sdl::joystick_num_buttons);
-    create_native_function(sdl, "joystickGetAxis", &sdl::joystick_get_axis);
-    create_native_function(sdl, "joystickGetHat", &sdl::joystick_get_hat);
-    create_native_function(sdl, "joystickGetButton", &sdl::joystick_get_button);
-    create_native_function(sdl, "joystickGetBall", &sdl::joystick_get_ball);
-	}
+  }
 }

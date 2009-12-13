@@ -24,12 +24,13 @@ THE SOFTWARE.
 */
 #include "sdl-key.hpp"
 #include <flusspferd/create.hpp>
+#include <flusspferd/create/object.hpp>
 #include <SDL.h>
 
 using namespace flusspferd;
 namespace sdl {
-	object key_object() {
-    object key(create_object());
+  object key_object() {
+    object key(create<object>());
     key.define_property("BACKSPACE", value((int)SDLK_BACKSPACE));
     key.define_property("TAB", value((int)SDLK_TAB));
     key.define_property("CLEAR", value((int)SDLK_CLEAR));
@@ -264,7 +265,7 @@ namespace sdl {
   }
 
   object mod_object() {
-    object mod(create_object());
+    object mod(create<object>());
     mod.define_property("NONE", value((int)KMOD_NONE));
     mod.define_property("LSHIFT", value((int)KMOD_LSHIFT));
     mod.define_property("RSHIFT", value((int)KMOD_RSHIFT));

@@ -26,6 +26,8 @@ THE SOFTWARE.
 #include "Surface.hpp"
 
 #include <flusspferd/create.hpp>
+#include <flusspferd/create_on.hpp>
+#include <flusspferd/create/function.hpp>
 
 #include <SDL.h>
 
@@ -33,8 +35,9 @@ using namespace flusspferd;
 namespace sdl {
 namespace {
 }
-	void load_mouse(object &sdl) {
-		create_native_function(sdl, "warpMouse", &::SDL_WarpMouse);
-    create_native_function(sdl, "showCursor", &::SDL_ShowCursor);
-	}
+  void load_mouse(object &sdl) {
+    create_on(sdl)
+      .create<function>("warpMouse", &::SDL_WarpMouse)
+      .create<function>("showCursor", &::SDL_ShowCursor);
+  }
 }

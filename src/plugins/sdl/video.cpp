@@ -27,6 +27,9 @@ THE SOFTWARE.
 #include "rect.hpp"
 
 #include <flusspferd/create.hpp>
+#include <flusspferd/create_on.hpp>
+#include <flusspferd/create/object.hpp>
+#include <flusspferd/create/function.hpp>
 #include <flusspferd/class_description.hpp>
 
 #include <SDL.h>
@@ -141,16 +144,16 @@ namespace sdl {
     }
 
     static PixelFormat &create(SDL_PixelFormat *format) {
-      return flusspferd::create_native_object<PixelFormat>(object(), format);
+      return flusspferd::create<PixelFormat>(bf::make_vector(format));
     }
   };
 
-	PixelFormat &wrap(SDL_PixelFormat *p) {
-		return PixelFormat::create(p);
-	}
-	SDL_PixelFormat *unwrap(PixelFormat &p) {
-		return p.data();
-	}
+  PixelFormat &wrap(SDL_PixelFormat *p) {
+    return PixelFormat::create(p);
+  }
+  SDL_PixelFormat *unwrap(PixelFormat &p) {
+    return p.data();
+  }
 
   class Surface;
 
@@ -190,16 +193,16 @@ namespace sdl {
     }
 
     static PixelData &create(void *data) {
-      return flusspferd::create_native_object<PixelData>(object(), reinterpret_cast<Uint8*>(data));
+      return flusspferd::create<PixelData>(bf::make_vector(reinterpret_cast<Uint8*>(data)));
     }
   };
 
-	PixelData &wrap(void *p) {
-		return PixelData::create(p);
-	}
-	void *unwrap(PixelData &p) {
-		return reinterpret_cast<void*>(p.data());
-	}
+  PixelData &wrap(void *p) {
+    return PixelData::create(p);
+  }
+  void *unwrap(PixelData &p) {
+    return reinterpret_cast<void*>(p.data());
+  }
 
   int PixelData::getpixel(Surface &s, int x, int y) {
     assert(s.surface);
@@ -329,16 +332,16 @@ namespace sdl {
     }
 
     static Color &create(SDL_Color const &color) {
-      return flusspferd::create_native_object<Color>(object(), color);
+      return flusspferd::create<Color>(bf::make_vector(color));
     }
   };
 
-	Color &wrap(SDL_Color const &p) {
-		return Color::create(p);
-	}
-	SDL_Color &unwrap(Color &p) {
-		return p.data();
-	}
+  Color &wrap(SDL_Color const &p) {
+    return Color::create(p);
+  }
+  SDL_Color &unwrap(Color &p) {
+    return p.data();
+  }
 
 namespace {  
   Surface &set_video_mode(int width, int height, int bpp, Uint32 flags) {
@@ -509,8 +512,8 @@ namespace {
     return SDL_FillRect(surface.surface, &r, color);
   }
 }
-	void load_video(flusspferd::object &sdl) {
-		sdl.define_property("SWSURFACE", value(SDL_SWSURFACE));
+  void load_video(flusspferd::object &sdl) {
+    sdl.define_property("SWSURFACE", value(SDL_SWSURFACE));
     sdl.define_property("HWSURFACE", value(SDL_HWSURFACE));
     sdl.define_property("ASYNCBLIT", value(SDL_ASYNCBLIT));
     sdl.define_property("ANYFORMAT", value(SDL_ANYFORMAT));
@@ -521,38 +524,39 @@ namespace {
     sdl.define_property("OPENGLBLIT", value(SDL_OPENGLBLIT));
     sdl.define_property("RESIZABLE", value(SDL_RESIZABLE));
     sdl.define_property("NOFRAME", value(SDL_NOFRAME));
-    create_native_function(sdl, "setVideoMode", &sdl::set_video_mode);
-    create_native_function(sdl, "getVideoSurface", &sdl::get_video_surface);
+    boost::function< void(call_context &)> blit_surface_ = &sdl::blit_surface;
+    create_on(sdl)
+      .create<function>("setVideoMode", &sdl::set_video_mode)
+      .create<function>("getVideoSurface", &sdl::get_video_surface)
+      .create<function>("videoModeOK", &::SDL_VideoModeOK)
+      .create<function>("flip", &sdl::flip)
+      .create<function>("updateRect", &sdl::update_rect)
+      .create<function>("lockSurface", &sdl::lock_surface)
+      .create<function>("unlockSurface", &sdl::unlock_surface)
+      .create<function>("freeSurface", &sdl::free_surface)
+      .create<function>("loadBMP", &sdl::load_BMP)
+      .create<function>("saveBMP", &sdl::save_BMP)
+      .create<function>("blitSurface", blit_surface_)
+      .create<function>("setColors", &sdl::set_colors)
+      .create<function>("createRGBSurface", &sdl::create_RGB_surface)
+      .create<function>("setAlpha", &sdl::set_alpha)
+      .create<function>("setColorKey", &sdl::set_color_key)
+      .create<function>("displayFormat", &sdl::display_format)
+      .create<function>("displayFormatAlpha", &sdl::display_format_alpha)
+      .create<function>("videoDriverName", &sdl::video_driver_name)
+      .create<function>("setGamma", &::SDL_SetGamma)
+      .create<function>("mapRGB", &sdl::map_RGB)
+      .create<function>("mapRGBA", &sdl::map_RGBA)
+      .create<function>("getRGB", &sdl::get_RGB)
+      .create<function>("setClipRect", &sdl::set_clip_rect)
+      .create<function>("getClipRect", &sdl::get_clip_rect)
+      .create<function>("fillRect", &sdl::fill_rect);
     load_class<sdl::Surface>(sdl);
     load_class<sdl::PixelFormat>(sdl);
     load_class<sdl::Color>(sdl);
     load_class<sdl::PixelData>(sdl);
-    create_native_function(sdl, "videoModeOK", &::SDL_VideoModeOK);
-    create_native_function(sdl, "flip", &sdl::flip);
-    create_native_function(sdl, "updateRect", &sdl::update_rect);
-    create_native_function(sdl, "lockSurface", &sdl::lock_surface);
-    create_native_function(sdl, "unlockSurface", &sdl::unlock_surface);
-    create_native_function(sdl, "freeSurface", &sdl::free_surface);
-    create_native_function(sdl, "loadBMP", &sdl::load_BMP);
-    create_native_function(sdl, "saveBMP", &sdl::save_BMP);
-    boost::function< void(call_context &)> blit_surface_ = &sdl::blit_surface;
-    create_native_function(sdl, "blitSurface", blit_surface_);
-    create_native_function(sdl, "setColors", &sdl::set_colors);
-    create_native_function(sdl, "createRGBSurface", &sdl::create_RGB_surface);
     sdl.define_property("SRCALPHA", value(SDL_SRCALPHA));
     sdl.define_property("RLEACCEL", value(SDL_RLEACCEL));
-    create_native_function(sdl, "setAlpha", &sdl::set_alpha);
     sdl.define_property("SRCCOLORKEY", value(SDL_SRCCOLORKEY));
-    create_native_function(sdl, "setColorKey", &sdl::set_color_key);
-    create_native_function(sdl, "displayFormat", &sdl::display_format);
-    create_native_function(sdl, "displayFormatAlpha", &sdl::display_format_alpha);
-    create_native_function(sdl, "videoDriverName", &sdl::video_driver_name);
-    create_native_function(sdl, "setGamma", &::SDL_SetGamma);
-    create_native_function(sdl, "mapRGB", &sdl::map_RGB);
-    create_native_function(sdl, "mapRGBA", &sdl::map_RGBA);
-    create_native_function(sdl, "getRGB", &sdl::get_RGB);
-    create_native_function(sdl, "setClipRect", &sdl::set_clip_rect);
-    create_native_function(sdl, "getClipRect", &sdl::get_clip_rect);
-    create_native_function(sdl, "fillRect", &sdl::fill_rect);
-	}
+  }
 }

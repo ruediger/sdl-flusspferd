@@ -26,13 +26,15 @@ THE SOFTWARE.
 #include "Surface.hpp"
 
 #include <flusspferd/create.hpp>
+#include <flusspferd/create_on.hpp>
+#include <flusspferd/create/function.hpp>
 
 #include <SDL.h>
 
 using namespace flusspferd;
 namespace sdl {
 namespace {
-	int wm_toggle_fullscreen(Surface &surface) {
+  int wm_toggle_fullscreen(Surface &surface) {
     return SDL_WM_ToggleFullScreen(surface.surface);
   }
 
@@ -44,14 +46,15 @@ namespace {
     return (int)SDL_WM_GrabInput((SDL_GrabMode)mode);
   }
 }
-	void load_wm(flusspferd::object &sdl) {
-		create_native_function(sdl, "WMSetCaption", &::SDL_WM_SetCaption);
-    create_native_function(sdl, "WMToggleFullScreen", &sdl::wm_toggle_fullscreen);
-    create_native_function(sdl, "WMSetIcon", &sdl::wm_set_icon);
-    create_native_function(sdl, "WMIconifyWindow", &::SDL_WM_IconifyWindow);
+  void load_wm(flusspferd::object &sdl) {
+    create_on(sdl)
+      .create<function>("WMSetCaption", &::SDL_WM_SetCaption)
+      .create<function>("WMToggleFullScreen", &sdl::wm_toggle_fullscreen)
+      .create<function>("WMSetIcon", &sdl::wm_set_icon)
+      .create<function>("WMIconifyWindow", &::SDL_WM_IconifyWindow)
+      .create<function>("WMGrabInput", &sdl::wm_grab_input);
     sdl.define_property("GRAB_QUERY", value((int)SDL_GRAB_QUERY));
     sdl.define_property("GRAB_OFF", value((int)SDL_GRAB_OFF));
     sdl.define_property("GRAB_ON", value((int)SDL_GRAB_ON));
-    create_native_function(sdl, "WMGrabInput", &sdl::wm_grab_input);
-	}
+  }
 }

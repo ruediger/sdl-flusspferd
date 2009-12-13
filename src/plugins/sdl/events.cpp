@@ -26,6 +26,9 @@ THE SOFTWARE.
 #include "sdl-key.hpp"
 
 #include <flusspferd/create.hpp>
+#include <flusspferd/create_on.hpp>
+#include <flusspferd/create/object.hpp>
+#include <flusspferd/create/function.hpp>
 #include <flusspferd/class_description.hpp>
 
 #include <SDL.h>
@@ -33,6 +36,8 @@ THE SOFTWARE.
 using namespace flusspferd;
 
 namespace sdl {
+  namespace bf = boost::fusion;
+
   FLUSSPFERD_CLASS_DESCRIPTION
   (
    ActiveEvent,
@@ -57,7 +62,7 @@ namespace sdl {
     { }
 
     static ActiveEvent &create(SDL_ActiveEvent const &e) {
-      return flusspferd::create_native_object<ActiveEvent>(object(), e);
+      return flusspferd::create<ActiveEvent>(bf::make_vector(e));
     }
   };
 
@@ -87,7 +92,7 @@ namespace sdl {
     { }
 
     static Keysym &create(SDL_keysym const &k) {
-      return flusspferd::create_native_object<Keysym>(object(), k);
+      return flusspferd::create<Keysym>(bf::make_vector(k));
     }
   };
 
@@ -115,7 +120,7 @@ namespace sdl {
     { }
 
     static KeyboardEvent &create(SDL_KeyboardEvent const &e) {
-      return flusspferd::create_native_object<KeyboardEvent>(object(), e);
+      return flusspferd::create<KeyboardEvent>(bf::make_vector(e));
     }
   };
 
@@ -148,7 +153,7 @@ namespace sdl {
     { }
 
     static MouseMotionEvent &create(SDL_MouseMotionEvent const &e) {
-      return flusspferd::create_native_object<MouseMotionEvent>(object(), e);
+      return flusspferd::create<MouseMotionEvent>(bf::make_vector(e));
     }
   };
 
@@ -182,7 +187,7 @@ namespace sdl {
     { }
 
     static MouseButtonEvent &create(SDL_MouseButtonEvent const &e) {
-      return flusspferd::create_native_object<MouseButtonEvent>(object(), e);
+      return flusspferd::create<MouseButtonEvent>(bf::make_vector(e));
     }
   };
 
@@ -212,7 +217,7 @@ namespace sdl {
     { }
 
     static JoyAxisEvent &create(SDL_JoyAxisEvent const &e) {
-      return flusspferd::create_native_object<JoyAxisEvent>(object(), e);
+      return flusspferd::create<JoyAxisEvent>(bf::make_vector(e));
     }
   };
 
@@ -243,7 +248,7 @@ namespace sdl {
     { }
 
     static JoyButtonEvent &create(SDL_JoyButtonEvent const &e) {
-      return flusspferd::create_native_object<JoyButtonEvent>(object(), e);
+      return flusspferd::create<JoyButtonEvent>(bf::make_vector(e));
     }
   };
 
@@ -274,7 +279,7 @@ namespace sdl {
     { }
 
     static JoyHatEvent &create(SDL_JoyHatEvent const &e) {
-      return flusspferd::create_native_object<JoyHatEvent>(object(), e);
+      return flusspferd::create<JoyHatEvent>(bf::make_vector(e));
     }
   };
 
@@ -294,7 +299,7 @@ namespace sdl {
   {
     SDL_JoyBallEvent event;
   public:
-		SDL_JoyBallEvent &data() { return event; }
+    SDL_JoyBallEvent &data() { return event; }
 
     int get_type() { return event.type; }
     int get_which() { return event.which; }
@@ -307,7 +312,7 @@ namespace sdl {
     { }
 
     static JoyBallEvent &create(SDL_JoyBallEvent const &e) {
-      return flusspferd::create_native_object<JoyBallEvent>(object(), e);
+      return flusspferd::create<JoyBallEvent>(bf::make_vector(e));
     }
   };
 
@@ -325,7 +330,7 @@ namespace sdl {
   {
     SDL_ResizeEvent event;
   public:
-		SDL_ResizeEvent &data() { return event; }
+    SDL_ResizeEvent &data() { return event; }
 
     int get_type() { return event.type; }
     int get_w() { return event.w; }
@@ -336,7 +341,7 @@ namespace sdl {
     { }
 
     static ResizeEvent &create(SDL_ResizeEvent const &e) {
-      return flusspferd::create_native_object<ResizeEvent>(object(), e);
+      return flusspferd::create<ResizeEvent>(bf::make_vector(e));
     }
   };
 
@@ -352,7 +357,7 @@ namespace sdl {
   {
     SDL_ExposeEvent event;
   public:
-		SDL_ExposeEvent &data() { return event; }
+    SDL_ExposeEvent &data() { return event; }
 
     int get_type() { return event.type; }
 
@@ -361,7 +366,7 @@ namespace sdl {
     { }
 
     static ExposeEvent &create(SDL_ExposeEvent const &e) {
-      return flusspferd::create_native_object<ExposeEvent>(object(), e);
+      return flusspferd::create<ExposeEvent>(bf::make_vector(e));
     }
   };
 
@@ -386,7 +391,7 @@ namespace sdl {
     { }
 
     static QuitEvent &create(SDL_QuitEvent const &e) {
-      return flusspferd::create_native_object<QuitEvent>(object(), e);
+      return flusspferd::create<QuitEvent>(bf::make_vector(e));
     }
   };
 
@@ -417,7 +422,7 @@ namespace sdl {
   {
     SDL_Event event;
   public:
-		SDL_Event &data() { return event; }
+    SDL_Event &data() { return event; }
 
     int get_type() {
       return event.type;
@@ -469,103 +474,103 @@ namespace sdl {
     { }
 
     static Event &create(SDL_Event const &e) {
-      return flusspferd::create_native_object<Event>(object(), e);
+      return flusspferd::create<Event>(bf::make_vector(e));
     }
   };
 
-	ActiveEvent &wrap(SDL_ActiveEvent const &p) {
-		return ActiveEvent::create(p);
-	}
-	SDL_ActiveEvent &unwrap(ActiveEvent &p) {
-		return p.data();
-	}
+  ActiveEvent &wrap(SDL_ActiveEvent const &p) {
+    return ActiveEvent::create(p);
+  }
+  SDL_ActiveEvent &unwrap(ActiveEvent &p) {
+    return p.data();
+  }
 
-	Keysym &wrap(SDL_keysym const &p) {
-		return Keysym::create(p);
-	}
-	SDL_keysym &unwrap(Keysym &p) {
-		return p.data();
-	}
-
-	KeyboardEvent &wrap(SDL_KeyboardEvent const &p) {
-		return KeyboardEvent::create(p);
-	}
-	SDL_KeyboardEvent &unwrap(KeyboardEvent &p) {
-		return p.data();
-	}
-
-	MouseMotionEvent &wrap(SDL_MouseMotionEvent const &p) {
-		return MouseMotionEvent::create(p);
-	}
-	SDL_MouseMotionEvent &unwrap(MouseMotionEvent &p) {
-		return p.data();
-	}
-
-	MouseButtonEvent &wrap(SDL_MouseButtonEvent const &p) {
-		return MouseButtonEvent::create(p);
-	}
-	SDL_MouseButtonEvent &unwrap(MouseButtonEvent &p) {
-		return p.data();
-	}
-
-	JoyAxisEvent &wrap(SDL_JoyAxisEvent const &p) {
-		return JoyAxisEvent::create(p);
-	}
-	SDL_JoyAxisEvent &unwrap(JoyAxisEvent &p) {
-		return p.data();
-	}
-
-	JoyButtonEvent &wrap(SDL_JoyButtonEvent const &p) {
-		return JoyButtonEvent::create(p);
-	}
-	SDL_JoyButtonEvent &unwrap(JoyButtonEvent &p) {
-		return p.data();
-	}
-
-	JoyHatEvent &wrap(SDL_JoyHatEvent const &p) {
-		return JoyHatEvent::create(p);
-	}
-	SDL_JoyHatEvent &unwrap(JoyHatEvent &p) {
-		return p.data();
-	}
-
-	JoyBallEvent &wrap(SDL_JoyBallEvent const &p) {
+  Keysym &wrap(SDL_keysym const &p) {
+    return Keysym::create(p);
+  }
+  SDL_keysym &unwrap(Keysym &p) {
+    return p.data();
+  }
+  
+  KeyboardEvent &wrap(SDL_KeyboardEvent const &p) {
+    return KeyboardEvent::create(p);
+  }
+  SDL_KeyboardEvent &unwrap(KeyboardEvent &p) {
+    return p.data();
+  }
+  
+  MouseMotionEvent &wrap(SDL_MouseMotionEvent const &p) {
+    return MouseMotionEvent::create(p);
+  }
+  SDL_MouseMotionEvent &unwrap(MouseMotionEvent &p) {
+    return p.data();
+  }
+  
+  MouseButtonEvent &wrap(SDL_MouseButtonEvent const &p) {
+    return MouseButtonEvent::create(p);
+  }
+  SDL_MouseButtonEvent &unwrap(MouseButtonEvent &p) {
+    return p.data();
+  }
+  
+  JoyAxisEvent &wrap(SDL_JoyAxisEvent const &p) {
+    return JoyAxisEvent::create(p);
+  }
+  SDL_JoyAxisEvent &unwrap(JoyAxisEvent &p) {
+    return p.data();
+  }
+  
+  JoyButtonEvent &wrap(SDL_JoyButtonEvent const &p) {
+    return JoyButtonEvent::create(p);
+  }
+  SDL_JoyButtonEvent &unwrap(JoyButtonEvent &p) {
+    return p.data();
+  }
+  
+  JoyHatEvent &wrap(SDL_JoyHatEvent const &p) {
+    return JoyHatEvent::create(p);
+  }
+  SDL_JoyHatEvent &unwrap(JoyHatEvent &p) {
+    return p.data();
+  }
+  
+  JoyBallEvent &wrap(SDL_JoyBallEvent const &p) {
 		return JoyBallEvent::create(p);
-	}
-	SDL_JoyBallEvent &unwrap(JoyBallEvent &p) {
-		return p.data();
-	}
-
-	ResizeEvent &wrap(SDL_ResizeEvent const &p) {
-		return ResizeEvent::create(p);
-	}
-	SDL_ResizeEvent &unwrap(ResizeEvent &p) {
-		return p.data();
-	}
-
-	ExposeEvent &wrap(SDL_ExposeEvent const &p) {
-		return ExposeEvent::create(p);
-	}
-	SDL_ExposeEvent &unwrap(ExposeEvent &p) {
-		return p.data();
-	}
-
-	QuitEvent &wrap(SDL_QuitEvent const &p) {
-		return QuitEvent::create(p);
-	}
-	SDL_QuitEvent &unwrap(QuitEvent &p) {
-		return p.data();
-	}
-
-	Event &wrap(SDL_Event const &p) {
-		return Event::create(p);
-	}
-	SDL_Event &unwrap(Event &p) {
-		return p.data();
-	}
-
+  }
+  SDL_JoyBallEvent &unwrap(JoyBallEvent &p) {
+    return p.data();
+  }
+  
+  ResizeEvent &wrap(SDL_ResizeEvent const &p) {
+    return ResizeEvent::create(p);
+  }
+  SDL_ResizeEvent &unwrap(ResizeEvent &p) {
+    return p.data();
+  }
+  
+  ExposeEvent &wrap(SDL_ExposeEvent const &p) {
+    return ExposeEvent::create(p);
+  }
+  SDL_ExposeEvent &unwrap(ExposeEvent &p) {
+    return p.data();
+  }
+  
+  QuitEvent &wrap(SDL_QuitEvent const &p) {
+    return QuitEvent::create(p);
+  }
+  SDL_QuitEvent &unwrap(QuitEvent &p) {
+    return p.data();
+  }
+  
+  Event &wrap(SDL_Event const &p) {
+    return Event::create(p);
+  }
+  SDL_Event &unwrap(Event &p) {
+    return p.data();
+  }
+  
 namespace {
-	char const *get_key_name(int key) {
+  char const *get_key_name(int key) {
     return SDL_GetKeyName((SDLKey)key);
   }
 
@@ -609,7 +614,7 @@ namespace {
   object get_mouse_state() {
     int x, y;
     int ret = SDL_GetMouseState(&x, &y);
-    object state(flusspferd::create_object());
+    object state(create<object>());
     state.set_property("state", ret);
     state.set_property("x", x);
     state.set_property("y", y);
@@ -619,23 +624,25 @@ namespace {
   object get_relative_mouse_state() {
     int x, y;
     int ret = SDL_GetRelativeMouseState(&x, &y);
-    object state(flusspferd::create_object());
+    object state(create<object>());
     state.set_property("state", ret);
     state.set_property("x", x);
     state.set_property("y", y);
     return state;
   }
 }
-	void load_events(object &sdl) {
-		sdl.define_property("key", key_object());
+  void load_events(object &sdl) {
+    sdl.define_property("key", key_object());
     sdl.define_property("kmod", mod_object());
-    create_native_function(sdl, "enableUNICODE", &::SDL_EnableUNICODE);
-    create_native_function(sdl, "enableKeyRepeat", &::SDL_EnableKeyRepeat);
-    create_native_function(sdl, "getKeyName", &sdl::get_key_name);
+    create_on(sdl)
+      .create<function>("enableUNICODE", &::SDL_EnableUNICODE)
+      .create<function>("enableKeyRepeat", &::SDL_EnableKeyRepeat)
+      .create<function>("getKeyName", &sdl::get_key_name);
     sdl.define_property("APPMOUSEFOCUS", value((int)SDL_APPMOUSEFOCUS));
     sdl.define_property("APPINPUTFOCUS", value((int)SDL_APPINPUTFOCUS));
     sdl.define_property("APPACTIVE", value((int)SDL_APPACTIVE));
-    create_native_function(sdl, "getAppState", &sdl::get_app_state);
+    create_on(sdl)
+      .create<function>("getAppState", &sdl::get_app_state);
 #if 0
     create_native_function(sdl, "startTextInput", &::SDL_StartTextInput);
     create_native_function(sdl, "stopTextInput", &::SDL_StopTextInput);
@@ -643,7 +650,7 @@ namespace {
     sdl.define_property("IGNORE", value((int)SDL_IGNORE));
     sdl.define_property("ENABLE", value((int)SDL_ENABLE));
     sdl.define_property("QUERY", value((int)SDL_QUERY));
-    create_native_function(sdl, "eventState", &sdl::event_state);
+    create<function>("eventState", &sdl::event_state, param::_container=sdl);
     load_class<sdl::ActiveEvent>(sdl);
     load_class<sdl::KeyboardEvent>(sdl);
     load_class<sdl::MouseMotionEvent>(sdl);
@@ -672,13 +679,14 @@ namespace {
     sdl.define_property("QUIT", value((int)SDL_QUIT));
     sdl.define_property("USEREVENT", value((int)SDL_USEREVENT));
     sdl.define_property("SYSWMEVENT", value((int)SDL_SYSWMEVENT));
-    create_native_function(sdl, "pollEvent", &sdl::poll_event);
-    create_native_function(sdl, "waitEvent", &sdl::wait_event);
-    create_native_function(sdl, "getModState", &sdl::get_mod_state);
-    create_native_function(sdl, "setModState", &sdl::set_mod_state);
-    create_native_function(sdl, "pumpEvents", &::SDL_PumpEvents);
-    create_native_function(sdl, "getMouseState", &sdl::get_mouse_state);
-    create_native_function(sdl, "getRelativeMouseState", &sdl::get_relative_mouse_state);
-    create_native_function(sdl, "joystickEventState", &::SDL_JoystickEventState);
-	}
+    create_on(sdl)
+      .create<function>("pollEvent", &sdl::poll_event)
+      .create<function>("waitEvent", &sdl::wait_event)
+      .create<function>("getModState", &sdl::get_mod_state)
+      .create<function>("setModState", &sdl::set_mod_state)
+      .create<function>("pumpEvents", &::SDL_PumpEvents)
+      .create<function>("getMouseState", &sdl::get_mouse_state)
+      .create<function>("getRelativeMouseState", &sdl::get_relative_mouse_state)
+      .create<function>("joystickEventState", &::SDL_JoystickEventState);
+  }
 }

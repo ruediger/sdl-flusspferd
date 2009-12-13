@@ -34,10 +34,11 @@ THE SOFTWARE.
 #include <SDL.h>
 
 namespace sdl {
-	class PixelFormat;
-	class PixelData;
+  namespace bf = boost::fusion;
+  class PixelFormat;
+  class PixelData;
 
-	FLUSSPFERD_CLASS_DESCRIPTION(
+  FLUSSPFERD_CLASS_DESCRIPTION(
    Surface,
    (constructor_name, "Surface")
    (constructible, false)
@@ -93,7 +94,7 @@ namespace sdl {
     }
 
     static Surface &create(SDL_Surface *surface) {
-      return flusspferd::create_native_object<Surface>(flusspferd::object(), surface);
+      return flusspferd::create<Surface>(bf::make_vector(surface));
     }
   };
 }
