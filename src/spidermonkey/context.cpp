@@ -28,6 +28,7 @@ THE SOFTWARE.
 #include "flusspferd/object.hpp"
 #include "flusspferd/exception.hpp"
 #include "flusspferd/local_root_scope.hpp"
+#include "flusspferd/create/object.hpp"
 #include "flusspferd/spidermonkey/context.hpp"
 #include "flusspferd/spidermonkey/value.hpp"
 #include "flusspferd/spidermonkey/object.hpp"
@@ -76,7 +77,6 @@ public:
     options |= JSOPTION_VAROBJFIX;
     options |= JSOPTION_STRICT;
     options |= JSOPTION_DONT_REPORT_UNCAUGHT;
-    options &= ~JSOPTION_XML;
 
     JS_SetVersion(context, JSVersion(JS_VERSION));
     JS_SetOptions(context, options);
@@ -96,10 +96,13 @@ public:
     if(!JS_InitStandardClasses(context, global_))
       throw exception("Could not initialize Global Object");
 
-    JS_DeleteProperty(context, global_, "XML");
-
     JS_SetContextPrivate(context, static_cast<void*>(new context_private));
-  }
+
+#ifdef DEBUG
+    // This might want to be conditional on something else too
+    JS_SetGCZeal(context, 2);
+#endif
+}
 
   explicit impl(JSContext *context)
     : context(context), destroy(false)
@@ -178,6 +181,13 @@ context::~context() { }
 context context::create() {
   context c;
   c.p.reset(new impl);
+
+  current_context_scope scope(c);
+
+  // add standard prototype (for e.g. native_object_base)
+  object std_proto = flusspferd::create<object>().prototype();
+  c.add_prototype("", std_proto);
+
   return c;
 }
 
@@ -264,3 +274,24 @@ bool context::set_strict(bool strict) {
 
   return old;
 }
+
+bool context::set_jit(bool jit) {
+  uint32 options = JS_GetOptions(p->context);
+
+  bool old = (options & JSOPTION_JIT) == JSOPTION_JIT;
+
+  // No change.
+  if (old == jit)
+    return old;
+
+  if (jit) {
+    options |= JSOPTION_JIT;
+  }
+  else {
+    options &= ~JSOPTION_JIT;
+  }
+  JS_SetOptions(p->context, options);
+
+  return old;
+}
+

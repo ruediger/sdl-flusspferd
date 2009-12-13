@@ -26,8 +26,8 @@ THE SOFTWARE.
 #include "flusspferd/properties_functions.hpp"
 #include "flusspferd/property_iterator.hpp"
 #include "flusspferd/value.hpp"
-#include "flusspferd/create.hpp"
 #include "flusspferd/string.hpp"
+#include "flusspferd/create/function.hpp"
 
 using namespace flusspferd;
 
@@ -40,21 +40,20 @@ void flusspferd::load_properties_functions(object container) {
 
   if (!v.is_object())
     throw exception("Unable to get Object constructor");
-  object obj_ctor = v.to_object();
+  root_object obj_ctor(v.get_object());
 
-  create_native_function(
-      obj_ctor,
+  create<function>(
       "defineProperty",
-      ecma_define_own_property);
+      ecma_define_own_property,
+      param::_container = obj_ctor);
 
-  create_native_function(
-      obj_ctor,
+  create<function>(
       "defineProperties",
-      ecma_define_own_properties);
+      ecma_define_own_properties,
+      param::_container = obj_ctor);
 }
 
 void ecma_define_own_properties(object o, object desc) {
-
   for (flusspferd::property_iterator it = desc.begin(); it != desc.end(); ++it) {
     ecma_define_own_property(o, *it, desc.get_property_object(*it));
   }
@@ -67,8 +66,8 @@ void ecma_define_own_property(object o, string p, object desc) {
 
   // TODO: Check if obj is sealed/not extensible
 
-  property_attributes attrs;
-  bool current = o.has_own_property(p) && o.get_property_attributes(p, attrs);
+  boost::optional<property_attributes> attrs = o.get_property_attributes(p);
+  bool current = o.has_own_property(p) && attrs;
 
   bool is_accessor = false, is_data = false,
        configurable = false, enumerable = false, writable = false;
@@ -77,10 +76,10 @@ void ecma_define_own_property(object o, string p, object desc) {
 
   // Short circuit if current property is permanent
   if (current) {
-    if (attrs.flags & permanent_property)
+    if (attrs->flags & permanent_property)
       throw exception("Cannot alter un-configurable properties");
 
-    flags = attrs.flags;
+    flags = attrs->flags;
   }
 
 

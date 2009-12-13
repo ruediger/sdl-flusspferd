@@ -55,10 +55,10 @@ public:
     }
 
     flusspferd::array to_array() {
-        flusspferd::array result = flusspferd::create_array();
+        flusspferd::root_array result(flusspferd::create<flusspferd::array>());
 
         for (iterator it = data.begin(); it != data.end(); ++it) {
-            result.call("push", *it);
+            result.push(*it);
         }
 
         return result;
@@ -76,7 +76,9 @@ int main() {
     flusspferd::current_context_scope context_scope(
         flusspferd::context::create());
 
-    flusspferd::create_native_function(flusspferd::global(), "print", &print);
+    flusspferd::create<flusspferd::function>(
+        "print", &print,
+        flusspferd::param::_container = flusspferd::global());
 
     flusspferd::load_class<StringSet>();
 

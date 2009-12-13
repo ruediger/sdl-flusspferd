@@ -28,13 +28,17 @@ THE SOFTWARE.
 #define FLUSSPFERD_CLASS_HPP
 
 #include "native_function_base.hpp"
-#include "create.hpp"
+#include "create/object.hpp"
+#include "create/native_object.hpp"
+#include "create/native_function.hpp"
 #include "init.hpp"
 #include "local_root_scope.hpp"
 #include <boost/mpl/size_t.hpp>
 #include <boost/mpl/bool.hpp>
 #include <boost/utility/enable_if.hpp>
 #include <boost/ref.hpp>
+#include <boost/fusion/include/make_vector.hpp>
+#include <sstream>
 
 namespace flusspferd {
 
@@ -43,8 +47,8 @@ namespace flusspferd {
 namespace detail {
 
 struct unconstructible_class_constructor : native_function_base {
-  unconstructible_class_constructor(char const *name)
-    : native_function_base(0, name)
+  unconstructible_class_constructor(function const &obj)
+    : native_function_base(obj)
   {}
 
   void call(call_context &);
@@ -52,28 +56,66 @@ struct unconstructible_class_constructor : native_function_base {
 
 template<typename T>
 struct class_constructor : native_function_base {
-  class_constructor(unsigned arity, char const *name)
-    : native_function_base(arity, name)
+  class_constructor(function const &obj)
+    : native_function_base(obj)
   {}
 
   void call(call_context &x) {
-    x.result = flusspferd::create_native_object<T>(
-        x.function.get_property_object("prototype"),
-        boost::ref(x));
+    x.result = flusspferd::create<T>(
+        boost::fusion::make_vector(boost::ref(x)),
+        x.function.get_property_object("prototype"));
   }
 };
+
+template<typename T>
+std::string default_to_string() {
+  std::ostringstream str;
+  str << "[object " << T::class_info::full_name() << "]";
+  return str.str();
+}
+
+template<typename T>
+std::string default_to_source() {
+  std::ostringstream str;
+  str << "(new " << T::class_info::full_name() << "(...))";
+  return str.str();
+}
 
 template<typename T>
 void load_class(
     context &ctx, object &constructor) 
 {
-  object prototype = T::class_info::create_prototype();
+  root_object prototype(T::class_info::create_prototype());
   ctx.add_prototype<T>(prototype);
 
   prototype.define_property(
     "constructor",
     constructor,
     permanent_property | read_only_property | dont_enumerate);
+
+  root_value old_to_string(prototype.get_property("toString"));
+  if (old_to_string == ctx.prototype("").get_property("toString")
+      || root_object(old_to_string.to_object()).get_property("auto").to_boolean())
+  {
+    root_object fn(
+      flusspferd::create<function>(
+        "toString",
+        &default_to_string<T>,
+        param::_container = prototype));
+    fn.set_property("auto", true);
+  }
+
+  root_value old_to_source(prototype.get_property("toSource"));
+  if (old_to_source == ctx.prototype("").get_property("toSource")
+      || root_object(old_to_source.to_object()).get_property("auto").to_boolean())
+  {
+    root_object fn(
+      flusspferd::create<function>(
+        "toSource",
+        &default_to_source<T>,
+        param::_container = prototype));
+    fn.set_property("auto", true);
+  }
 
   constructor.define_property(
     "prototype",
@@ -154,7 +196,7 @@ struct class_info {
    * @return Return the newly created prototype object.
    */
   static object create_prototype() {
-    return create_object();
+    return create<object>();
   }
 };
 
@@ -167,26 +209,25 @@ object load_class(
     typename T::class_info::constructible
   >::type * = 0)
 {
-  std::size_t const arity = T::class_info::constructor_arity::value;
+  unsigned const arity = T::class_info::constructor_arity::value;
   char const *name = T::class_info::constructor_name();
   char const *full_name = T::class_info::full_name();
 
-  local_root_scope scope;
-
   context ctx = current_context();
 
-  value previous = container.get_property(name);
+  root_value previous(container.get_property(name));
 
   if (previous.is_object())
     return previous.get_object();
 
-  object constructor = ctx.constructor<T>();
+  root_object constructor(ctx.constructor<T>());
 
   if (constructor.is_null()) {
     constructor =
-      create_native_functor_function<
-          detail::class_constructor<T> 
-        >(flusspferd::object(), arity, full_name);
+      create<detail::class_constructor<T> >(
+          param::_name = full_name,
+          param::_arity = arity);
+
     ctx.add_constructor<T>(constructor);
     detail::load_class<T>(ctx, constructor);
   }
@@ -205,23 +246,21 @@ object load_class(
 {
   char const *name = T::class_info::constructor_name();
 
-  local_root_scope scope;
-
   context ctx = current_context();
 
-  value previous = container.get_property(name);
+  root_value previous(container.get_property(name));
 
   if (previous.is_object())
     return previous.get_object();
 
-  object constructor = ctx.constructor<T>();
+  root_object constructor(ctx.constructor<T>());
 
   if (constructor.is_null()) {
     char const *full_name = T::class_info::full_name();
     constructor =
-      create_native_functor_function<
-          detail::unconstructible_class_constructor
-        >(flusspferd::object(), full_name);
+      create<detail::unconstructible_class_constructor>(
+          param::_name = full_name);
+
     ctx.add_constructor<T>(constructor);
     detail::load_class<T>(ctx, constructor);
   }

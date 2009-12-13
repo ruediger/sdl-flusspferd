@@ -26,16 +26,19 @@ THE SOFTWARE.
 
 #include "flusspferd/io/stream.hpp"
 #include "flusspferd/local_root_scope.hpp"
-#include "flusspferd/create.hpp"
+#include "flusspferd/create/native_object.hpp"
 #include "flusspferd/string.hpp"
 #include "flusspferd/string_io.hpp"
 #include "flusspferd/create.hpp"
 #include "flusspferd/binary.hpp"
+#include "flusspferd/array.hpp"
 #include <boost/scoped_array.hpp>
+#include <boost/fusion/include/make_vector.hpp>
 #include <cstdlib>
 
 using namespace flusspferd;
 using namespace flusspferd::io;
+namespace fusion = boost::fusion;
 
 stream::stream(object const &o, std::streambuf *p)
   : base_type(o), streambuf_(p)
@@ -74,10 +77,8 @@ object stream::read_whole_binary(boost::optional<byte_array&> output_) {
     output_
     ? static_cast<binary&>(output_.get())
     : static_cast<binary&>(
-        create_native_object<byte_string>(
-          object(),
-          static_cast<binary::element_type*>(0),
-          0));
+        create<byte_string>(
+          fusion::vector2<binary::element_type*, std::size_t>(0, 0)));
   root_object root_obj(output);
 
   unsigned const N = 4096;
@@ -99,9 +100,8 @@ object stream::read_whole_binary(boost::optional<byte_array&> output_) {
   return output;
 }
 
-string stream::read(unsigned size) {
-  if (!size)
-    size = 4096;
+string stream::read(boost::optional<unsigned> size_opt) {
+  unsigned size = size_opt.get_value_or(4096);
 
   boost::scoped_array<char> buf(new char[size + 1]);
 
@@ -113,19 +113,16 @@ string stream::read(unsigned size) {
   return string(buf.get());
 }
 
-object stream::read_binary(unsigned size, boost::optional<byte_array&> output_)
+object stream::read_binary(boost::optional<unsigned> size_opt, boost::optional<byte_array&> output_)
 {
-  if (!size)
-    size = 4096;
+  unsigned size = size_opt.get_value_or(4096);
 
   binary &output =
     output_
     ? static_cast<binary&>(output_.get())
     : static_cast<binary&>(
-        create_native_object<byte_string>(
-          object(),
-          static_cast<binary::element_type*>(0),
-          0));
+        create<byte_string>(
+          fusion::vector2<binary::element_type*, std::size_t>(0, 0)));
   root_object root_obj(output);
 
   binary::vector_type &data = output.get_data();

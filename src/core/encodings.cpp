@@ -26,14 +26,17 @@ THE SOFTWARE.
 
 #include "flusspferd/binary.hpp"
 #include "flusspferd/encodings.hpp"
-#include "flusspferd/create.hpp"
+#include "flusspferd/create/native_object.hpp"
 #include <iconv.h>
 #include <errno.h>
 #include <sstream>
 #include <boost/algorithm/string.hpp>
+#include <boost/ref.hpp>
+#include <boost/fusion/include/make_vector.hpp>
 
 using namespace boost;
 using namespace flusspferd;
+using namespace fusion;
 
 void flusspferd::load_encodings_module(object container) {
   object exports = container.get_property_object("exports");
@@ -41,29 +44,36 @@ void flusspferd::load_encodings_module(object container) {
   // Load the binary module
   container.call("require", "binary");
 
-  create_native_function(
-    exports,
-    "convertToString", &encodings::convert_to_string);
+  create<function>(
+    "convertToString", &encodings::convert_to_string,
+    param::_container = exports);
 
-  create_native_function(
-    exports,
-    "convertFromString", &encodings::convert_from_string);
+  create<function>(
+    "convertFromString", &encodings::convert_from_string,
+    param::_container = exports);
 
-  create_native_function(
-    exports,
-    "convert", &encodings::convert);
+  create<function>(
+    "convert", &encodings::convert,
+    param::_container = exports);
 
   load_class<encodings::transcoder>(exports);
 }
 
-// HELPER METHODS
+// the UTF-16 bom is codepoint U+feff
+static js_char16_t const bom_le = *(js_char16_t*)"\xff\xfe";
+static js_char16_t const bom_native = 0xfeff;
+
+static char const * const native_charset = bom_le == bom_native
+                                         ? "utf-16le" : "utf-16be";
+
 
 // JAVASCRIPT METHODS
 
 flusspferd::string
 encodings::convert_to_string(std::string const &enc_, binary &source_binary) {
   transcoder &trans =
-    create_native_object<transcoder>(object(), enc_, "utf-8");
+    create<transcoder>(
+      vector2<std::string const&, std::string const&>(enc_, native_charset));
   root_object root_obj(trans);
 
   trans.push_accumulate(source_binary);
@@ -71,20 +81,21 @@ encodings::convert_to_string(std::string const &enc_, binary &source_binary) {
   binary &out = trans.close(boost::none);
 
   return flusspferd::string(
-    reinterpret_cast<char const *>(&out.get_data()[0]),
-    out.get_length());
+    reinterpret_cast<js_char16_t const *>(&out.get_data()[0]),
+    out.get_length() / sizeof(js_char16_t));
 }
 
 object encodings::convert_from_string(std::string const &enc, string const &str)
 {
   transcoder &trans =
-    create_native_object<transcoder>(object(), "utf-8", enc);
+    create<transcoder>(
+      vector2<std::string const&, std::string const&>(native_charset, enc));
   root_object root_obj(trans);
 
-  binary &source_binary = create_native_object<byte_string>(
-    object(),
-    reinterpret_cast<binary::element_type const *>(str.c_str()),
-    std::strlen(str.c_str()));
+  binary &source_binary = create<byte_string>(
+    vector2<binary::element_type const *, std::size_t>(
+      reinterpret_cast<binary::element_type const*>(str.data()),
+      str.size() * sizeof(js_char16_t)));
   root_object root_obj2(source_binary);
 
   trans.push_accumulate(source_binary);
@@ -95,8 +106,8 @@ object encodings::convert_from_string(std::string const &enc, string const &str)
 object encodings::convert(
   std::string const &from_, std::string const &to_, binary &source_binary)
 {
-  transcoder &trans =
-    create_native_object<transcoder>(object(), from_, to_);
+  transcoder &trans = create<transcoder>(make_vector(boost::cref(from_),
+                                                     boost::cref(to_)));
   root_object root_obj(trans);
 
   trans.push_accumulate(source_binary);
@@ -158,8 +169,13 @@ void encodings::transcoder::init(std::string const &from, std::string const &to)
 
   p->conv = iconv_open(to.c_str(), from.c_str());
 
-  if (p->conv == iconv_t(-1))
-    throw exception("Could not create Transcoder with iconv");
+  if (p->conv == iconv_t(-1)) {
+    std::ostringstream message;
+    message << "Could not create Transcoder (iconv) "
+            << "from charset \"" << from << "\" "
+            << "to charset \"" << to << "\"";
+    throw exception(message.str());
+  }
 
   this->p.swap(p);
 }
@@ -220,10 +236,7 @@ binary &encodings::transcoder::get_output_binary(
     output_
     ? static_cast<binary&>(output_.get())
     : static_cast<binary&>(
-        create_native_object<byte_string>(
-          object(),
-          (byte_string::element_type*)0,
-          0));
+        create<byte_string>(vector2<binary::element_type*, std::size_t>(0,0)));
 }
 
 

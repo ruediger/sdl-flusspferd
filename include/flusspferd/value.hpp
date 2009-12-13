@@ -255,7 +255,7 @@ public:
   /// Convert the value to a C++ standard library string (std::string)
   std::string to_std_string() const;
 
-  /// Convert the number to a number.
+  /// Convert the value to a number.
   double to_number() const;
 
   /// Convert the value to an integral number.
@@ -270,6 +270,22 @@ public:
   /// Return a debugging representation, similar to calling v.toSource() in javascript.
   string to_source() const;
 };
+
+/**
+ * Compare two values for strict equality, like === in Javascript.
+ *
+ * @relates value
+ */
+bool operator==(value const &a, value const &b);
+
+/**
+ * Compare two values for strict inequality, like !== in Javascript.
+ *
+ * @relates value
+ */
+inline bool operator!=(value const &a, value const &b) {
+  return !(a == b);
+}
 
 }
 

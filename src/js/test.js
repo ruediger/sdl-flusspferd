@@ -117,7 +117,7 @@ merge(TAPProducer.prototype, {
 
   diag: function diag(msg,filter) {
     var self = this,
-        lines = msg.split(/\n/)
+        lines = String(msg).split(/\n/)
 
     lines = lines.map(function(l) {
       return self.padding + ("# " + l)
@@ -137,7 +137,7 @@ merge(TAPProducer.prototype, {
 });
 
 
-const Suite = function Suite(cases) {
+const Suite = exports.Suite = function Suite(cases) {
   this.__proto__.__proto__.constructor.call(this);
   this._state = {
     cases: [],
@@ -155,11 +155,11 @@ const Suite = function Suite(cases) {
   // TODO: setup and teardown methods
   for (let [k,t] in Iterator(cases)) {
 
-    if (/^test_/.test(k) == false)
+    if (/^test/.test(k) == false)
       continue;
 
     let testCase = {
-      name: k.replace(/^test_(.*)/, "$1"),
+      name: k.replace(/^test[_ ]?/, ""),
       index: this._state.cases.length,
       numAsserts: 0,
       assertsFailed: []
@@ -280,13 +280,12 @@ merge(Suite.prototype, {
     if (this.nested)
       return;
     if (this._state.assertsFailed.length)
-      this.print("Failed", this._state.assertsFailed.length, "tests");
+      this.print(this.red("Failed", this._state.assertsFailed.length, "tests"));
     else
-      this.print("All tests successful");
+      this.print(this.green("All tests successful"));
   }
 })
 
-exports.Suite = Suite;
 exports.runner = function runner() {
   var suite;
   var args = Array.slice(arguments);
@@ -307,6 +306,70 @@ exports.runner = function runner() {
   return suite.run();
 };
 
+// The general test runner for 'run this dir of tests'
+exports.prove = function prove() {
+  const fs = require('filesystem-base');
+
+  var i = 0;
+  var options = {};
+
+  if (typeof arguments[0] == "object") {
+    i++;
+    options = arguments[0];
+  }
+
+  var test_files = [];
+
+  for (; i < arguments.length; ++i) {
+    var x = arguments[i].replace(/^file:\/\//, '');
+
+    if (!fs.exists(x))
+      throw new TypeError("Cannot determine test source for " + uneval(x));
+
+    if (fs.isDirectory(x))
+      findTests(fs.list(x));
+    else
+      findTests([x]);
+  }
+
+  var test = loadTests(test_files);
+  var suite = new Suite(test);
+  suite.run();
+
+  var failed = suite._state.assertsFailed.length;
+  quit( failed <= 255 ? failed : 255 );
+
+  function findTests(files) {
+    for ([,x] in Iterator(files) ) {
+      // Ingore "." dot-files
+      if (x.match(/(?:^|[\/\\])\.[^\/]*$/))
+        continue;
+
+      if (fs.isDirectory(x)) {
+        if (options.recurse)
+          findTests(fs.list(x));
+        continue;
+      }
+
+      if (x.match(/\.t\.js$/))
+        test_files.push(x);
+    }
+  }
+
+  function loadTests(files) {
+    var filename;
+    var testObject = {};
+    for ([,filename] in Iterator(files) ) {
+      var id  = fs.canonical(filename);
+
+      var test = require('file://' + id);
+      testObject['test ' + id] = test;
+    }
+
+    return testObject;
+  }
+}
+
 var currentSuite;
 Object.defineProperty( exports, "__currentSuite__", {
   getter: function() { return currentSuite },
@@ -321,11 +384,7 @@ Object.defineProperty( exports, "__currentSuite__", {
 
 
 
-
-const Asserts = function() {
-}
-
-merge(Asserts.prototype, {
+exports.asserts = {
   same: function(got, expected, message) {
 
     var ok = !!equiv(got, expected);
@@ -373,14 +432,68 @@ merge(Asserts.prototype, {
     } );
   },
 
+  matches: function matches(value, re, msg) {
+    if (re instanceof RegExp == false) {
+      re = new RegExp(re);
+    }
+    var ok = !!re(value);
+
+    var a = {
+      type: 'matches',
+      ok: ok,
+      when: new Date(),
+      message: msg,
+      defaultMsg: "matches " + re,
+    };
+
+    if (!ok) {
+      a.diag = (value === undefined
+                ? "undefined"
+                : uneval(value))
+             + "\nDidn't Match: " + re
+    }
+
+    return exports.__currentSuite__.do_assert(a);
+  },
+
   diag: function diag() {
     var suite = exports.__currentSuite__;
     suite.diag.apply(suite, arguments);
+  },
+
+  throwsOk: function( testcase, expected, message ) {
+    if ( message == undefined ) {
+      message = expected;
+      expected = undefined;
+    }
+    var suite = exports.__currentSuite__;
+
+    var a = {
+      type: "throwsOk",
+      ok: 0,
+      message: message,
+      defaultMsg: "throws error ok",
+    };
+
+    try {
+      testcase();
+      a.diag = "No error thrown";
+      suite.do_assert( a );
+    }
+    catch ( e ) {
+      if ( expected === undefined || expected == e.toString() ) {
+        a.ok = true;
+        suite.do_assert( a );
+      }
+      else {
+        a.diag = "   Got: " + e.toString() + "\n"
+                 "Wanted: " + expected;
+        suite.do_assert( a );
+      }
+    }
   }
 
-});
-
-exports.asserts = new Asserts();
+};
 
 
 /*

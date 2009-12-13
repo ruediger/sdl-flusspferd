@@ -27,6 +27,7 @@ THE SOFTWARE.
 #include "flusspferd/local_root_scope.hpp"
 #include "flusspferd/init.hpp"
 #include "flusspferd/spidermonkey/init.hpp"
+#include "flusspferd/modules.hpp"
 
 #include <js/jsapi.h>
 
@@ -57,7 +58,7 @@ value flusspferd::evaluate_in_scope(
                                 source, n, file, line, &rval);
   if(!ok) {
     exception e("Could not evaluate script");
-    if (!e.empty())
+    if (!e.is_js_exception())
       throw e;
   }
   return Impl::wrap_jsval(rval);
@@ -80,38 +81,22 @@ value flusspferd::evaluate_in_scope(char const *source,
 value flusspferd::execute(char const *filename, object const &scope_) {
   JSContext *cx = Impl::current_context();
 
-  local_root_scope root_scope;
+  root_string module_text(require::load_module_text(filename));
 
-  FILE *file = fopen(filename, "r");
-  if (!file) {
-    throw exception((std::string("Could not open '") + filename + "'").c_str());
-  }
- 
-  /*
-   * It's not interactive - just execute it.
-   *
-   * Support the UNIX #! shell hack; gobble the first line if it starts
-   * with '#'. TODO - this isn't quite compatible with sharp variables,
-   * as a legal js program (using sharp variables) might start with '#'.
-   * But that would require multi-character lookahead.
-   */
-  int ch = fgetc(file);
-  if (ch == '#') {
-      while((ch = fgetc(file)) != EOF) {
-          if (ch == '\n' || ch == '\r')
-              break;
-      }
-  }
-  ungetc(ch, file);
+  root_object scope_r(scope_);
 
   JSObject *scope = Impl::get_object(scope_);
 
   if (!scope)
     scope = Impl::get_object(flusspferd::global());
- 
+
   int oldopts = JS_GetOptions(cx);
-  JS_SetOptions(cx, oldopts | JSOPTION_COMPILE_N_GO );
-  JSScript *script = JS_CompileFileHandle(cx, scope, filename, file);
+  JS_SetOptions(cx, oldopts | JSOPTION_COMPILE_N_GO);
+  JSScript *script = JS_CompileUCScript(
+    cx, scope,
+    module_text.data(), module_text.length(),
+    filename, 1ul
+  );
 
   if (!script) {
     exception e("Could not compile script");
@@ -121,19 +106,18 @@ value flusspferd::execute(char const *filename, object const &scope_) {
 
   JS_SetOptions(cx, oldopts);
 
-  value result;
- 
-  JSBool ok = JS_ExecuteScript(cx, scope, script, Impl::get_jsvalp(result));
- 
-  if (!ok) {
-    exception e("Script execution failed");
-    if (!e.empty()) {
-      JS_DestroyScript(cx, script);
-      throw e;
-    }
-  }
+  // JS_NewScriptObject is needed because otherwise the Garbage Collector
+  // may go amok!
+  root_object script_o(Impl::wrap_object(JS_NewScriptObject(cx, script)));
 
-  JS_DestroyScript(cx, script);
+  root_value result;
+
+  JSBool ok = JS_ExecuteScript(cx, scope, script, Impl::get_jsvalp(result));
+
+  if (!ok)
+    throw exception("Script execution failed");
+
+  JS_MaybeGC(cx);
 
   return result;
 }

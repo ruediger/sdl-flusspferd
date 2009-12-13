@@ -34,7 +34,8 @@ THE SOFTWARE.
 #include <js/jsapi.h>
 #include <cassert>
 #include <cmath>
-#ifdef WIN32
+
+#ifdef _MSC_VER
 #include <float.h>
 #endif
 
@@ -95,7 +96,7 @@ double value::to_number() const {
 
 double value::to_integral_number(int bits, bool signedness) const {
   long double value = to_number();
-#ifdef WIN32
+#ifdef _MSC_VER
   if (!_finite(value))
     return 0;
 #else
@@ -130,17 +131,11 @@ object value::to_object() const {
 }
 
 string value::to_source() const {
-#ifdef JS_ValueToSource
   JSString *source = JS_ValueToSource(Impl::current_context(), get());
 
   if (!source)
     throw exception("Could not convert value to source");
   return Impl::wrap_string(source);
-#else
-  // This is potentially dangerous. Not sure there's much other choice if we
-  // want to support older spidermonkey versions though
-  return current_context().global().call("uneval", *this);
-#endif
 }
 
 void value::bind(value o) {
@@ -151,6 +146,17 @@ void value::bind(value o) {
 void value::unbind() {
   setval(JSVAL_VOID);
   setp(getvalp());
+}
+
+bool flusspferd::operator==(value const &a, value const &b) {
+  return JS_StrictlyEqual(
+    Impl::current_context(),
+    Impl::get_jsval(a),
+    Impl::get_jsval(b));
+}
+
+Impl::value_impl Impl::value_impl::from_int(int num) {
+  return wrap_jsval(INT_TO_JSVAL(num));
 }
 
 Impl::value_impl Impl::value_impl::from_double(double num) {
@@ -173,4 +179,20 @@ Impl::value_impl Impl::value_impl::from_string(string const &s) {
 
 Impl::value_impl Impl::value_impl::from_object(object const &o) {
   return wrap_jsval(OBJECT_TO_JSVAL(Impl::get_object(const_cast<object&>(o))));
+}
+
+jsid Impl::get_jsid(Impl::value_impl const &v) {
+  jsid id;
+  if(!JS_ValueToId(Impl::current_context(), Impl::get_jsval(v), &id)) {
+    throw exception("Could not convert value to id");
+  }
+  return id;
+}
+
+Impl::value_impl Impl::wrap_jsid(jsid id) {
+  jsval value;
+  if(!JS_IdToValue(Impl::current_context(), id, &value)) {
+    throw exception("Could not convert id to value");
+  }
+  return Impl::wrap_jsval(value);
 }

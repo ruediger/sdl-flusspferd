@@ -26,9 +26,12 @@ THE SOFTWARE.
 
 #include "flusspferd/system.hpp"
 #include "flusspferd/object.hpp"
-#include "flusspferd/create.hpp"
+#include "flusspferd/create/object.hpp"
+#include "flusspferd/create/array.hpp"
+#include "flusspferd/create/native_object.hpp"
 #include "flusspferd/version.hpp"
 #include "flusspferd/io/stream.hpp"
+#include <boost/fusion/include/make_vector.hpp>
 #include <iostream>
 #include <ostream>
 
@@ -36,14 +39,14 @@ THE SOFTWARE.
 #if defined(__APPLE__)
 #  include <crt_externs.h>
 #  define environ (*_NSGetEnviron())
-#elif defined(XP_WIN)
-extern char** _environ;
-#  define environ _environ
+#elif defined(WIN32)
+#include <windows.h>
 #else
 extern char** environ;
 # endif
 
 using namespace flusspferd;
+namespace fusion = boost::fusion;
 
 // The class for sys.env
 FLUSSPFERD_CLASS_DESCRIPTION(
@@ -75,42 +78,37 @@ void flusspferd::load_system_module(object &context) {
 
   exports.define_property(
     "stdout",
-    create_native_object<io::stream>(object(), std::cout.rdbuf()),
+    create<io::stream>(fusion::make_vector(std::cout.rdbuf())),
     read_only_property | permanent_property);
 
   exports.define_property(
     "stderr",
-    create_native_object<io::stream>(object(), std::cerr.rdbuf()),
+    create<io::stream>(fusion::make_vector(std::cerr.rdbuf())),
     read_only_property | permanent_property);
 
   exports.define_property(
     "stdin",
-    create_native_object<io::stream>(object(), std::cin.rdbuf()),
+    create<io::stream>(fusion::make_vector(std::cin.rdbuf())),
     read_only_property | permanent_property);
 
 
-  load_class<environment>(create_object());
+  load_class<environment>(create<object>());
   call_context x;
 
   exports.define_property(
     "env",
-    create_native_object<environment>(object(), boost::ref(x)),
+    create<environment>(fusion::vector1<call_context&>(x)),
     read_only_property | permanent_property
   );
 
   exports.define_property(
     "args",
-    create_array(),
+    create<array>(),
     read_only_property | permanent_property);
 
   exports.define_property(
     "platform",
     value("flusspferd"),
-    read_only_property | permanent_property);
-
-  exports.define_property(
-    "xFlusspferdVersion",
-    value(flusspferd::version()),
     read_only_property | permanent_property);
 }
 
@@ -136,10 +134,31 @@ bool environment::property_resolve(value const &id, unsigned)
 
 boost::any environment::enumerate_start(int &n) {
   n = 0; // We dont know how many
+#ifdef WIN32
+  return boost::any(GetEnvironmentStrings());
+#else
   return boost::any(environ);
+#endif
 }
 
 value environment::enumerate_next(boost::any &iter) {
+#ifdef WIN32
+  // GetEnvironmentStrings returns "Var1=Value1\0Var2=Value2\0\0"
+  char *env = boost::any_cast<char*>(iter);
+
+  if (*env == 0) {
+    FreeEnvironmentStrings(env);
+    return value();
+  }
+
+  char* eq_c = strchr(env, '=');
+  string s = string(env, eq_c - env);
+
+  // Skip over the value, leaving env[0] at the \0 byte.
+  while(*env) { ++env; }
+  // Iter is now first byte of next var (or the second \0 of end)
+  iter = ++env;
+#else
   char **env = boost::any_cast<char**>(iter);
 
   if (*env == 0)
@@ -149,6 +168,7 @@ value environment::enumerate_next(boost::any &iter) {
   string s = string(*env, eq_c - *env);
 
   iter = ++env;
+#endif
 
   return s;
 }

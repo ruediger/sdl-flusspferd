@@ -33,11 +33,10 @@ THE SOFTWARE.
  *
  * @li Linux or Mac OS X (possibly other POSIX systems work too),
  * @li <a href="http://www.cmake.org/">cmake</a> 2.6 or higher,
- * @li <a href="http://www.boost.org/">Boost</a> 1.36 or higher,
+ * @li <a href="http://www.boost.org/">Boost</a> 1.40 or higher,
  * @li <a href="https://developer.mozilla.org/en/SpiderMonkey">Spidermonkey</a> 
- *     1.7 or higher 
- *     (<a href="http://ftp.mozilla.org/pub/mozilla.org/js/">download here</a>).
- *
+ *     1.8.1 or higher (NOT 1.8.0)
+ * @li Depending on your platform, you need to install iconv.
  *
  * Recommended, but optional:
  *
@@ -128,14 +127,16 @@ Hello world!
  * Flusspferd uses <a href="http://cmake.org/">CMake</a> as its build
  * system.
  *
- * @subsection ubu Install on Ubuntu 9.04
+ * @subsection ubu Install on Ubuntu 9.10
  *
- * There is a seperate page on @subpage ubuntu "how to build Flusspferd on Ubuntu 9.04" and similar distributions.
+ * There is a seperate page on @subpage ubuntu "how to build Flusspferd on Ubuntu 9.10" and similar distributions.
  *
  * @subsection ebuild Install on Gentoo
  *
  * On Gentoo, you can use our ebuilds, in the branch 'packages', directory
  * 'gentoo/' to compile and install Flusspferd.
+ *
+ * These ebuilds can @b not be found in the official Gentoo repository.
  *
  * @subsection macports Install on Mac OS X via Macports
  *
