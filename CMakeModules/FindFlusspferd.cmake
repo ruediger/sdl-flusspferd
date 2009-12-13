@@ -1,10 +1,8 @@
-#!/bin/sh
-# -*- mode:sh; coding:utf-8; -*-
+# -*- mode:cmake;coding:utf-8; -*-
 #
 # The MIT License
 #
-# Copyright (c) 2008, 2009 Flusspferd contributors (see "CONTRIBUTORS" or
-#                                      http://flusspferd.org/contributors.txt)
+# Copyright (c) 2009 by Rüdiger Sonderfeld <ruediger@c-plusplus.de>
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -25,5 +23,15 @@
 # THE SOFTWARE.
 #
 
-mkdir build 2>/dev/null
-cd build && cmake "$@" ..
+if(FLUSSPFERD_INCLUDE_DIR)
+  set(Flusspferd_FIND_QUIETLY TRUE)
+endif()
+
+find_path(FLUSSPFERD_INCLUDE_DIR flusspferd.hpp)
+
+find_library(FLUSSPFERD_LIBRARY NAMES flusspferd)
+
+include(FindPackageHandleStandardArgs)
+find_package_handle_standard_args(Flusspferd DEFAULT_MSG FLUSSPFERD_LIBRARY FLUSSPFERD_INCLUDE_DIR)
+
+mark_as_advanced(FLUSSPFERD_LIBARARY FLUSSPFERD_INCLUDE_DIR)

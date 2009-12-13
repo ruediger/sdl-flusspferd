@@ -23,7 +23,7 @@
 # THE SOFTWARE.
 #
 
-.PHONY: all clean install uninstall test doc repl
+.PHONY: all clean install uninstall
 
 all: build
 	$(MAKE) -C build
@@ -48,13 +48,3 @@ uninstall: build
 	else 					    \
 	echo 'Flusspferd does not seem to be installed.'; \
 	fi
-
-test: all
-	@./util/run_tests.sh
-
-# needs "all" for manpage
-doc: all
-	@./util/docs.sh
-
-repl: all
-	@./util/jsrepl.sh
